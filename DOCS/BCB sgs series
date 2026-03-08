@@ -1,0 +1,629 @@
+//https://api.bcb.gov.br/dados/serie/bcdata.sgs.{codigo}/dados?formato=json
+
+{
+  "_meta": {
+    "titulo": "Catálogo de Séries Temporais - SGS/BCB (Banco Central do Brasil)",
+    "descricao": "Mapeamento das principais séries disponíveis na API do Sistema Gerenciador de Séries Temporais (SGS) do Banco Central do Brasil. Organizado por categoria temática e com indicação de abrangência geográfica.",
+    "fonte": "https://www3.bcb.gov.br/sgspub/",
+    "api_base_url": "https://api.bcb.gov.br/dados/serie/bcdata.sgs.{codigo}/dados",
+    "formatos_disponiveis": ["json", "csv", "xml"],
+    "exemplos_de_uso": {
+      "ultimo_valor": "https://api.bcb.gov.br/dados/serie/bcdata.sgs.{codigo}/dados/ultimos/1?formato=json",
+      "ultimos_N_valores": "https://api.bcb.gov.br/dados/serie/bcdata.sgs.{codigo}/dados/ultimos/{N}?formato=json",
+      "por_periodo": "https://api.bcb.gov.br/dados/serie/bcdata.sgs.{codigo}/dados?formato=json&dataInicial=dd/MM/aaaa&dataFinal=dd/MM/aaaa",
+      "todos_os_dados": "https://api.bcb.gov.br/dados/serie/bcdata.sgs.{codigo}/dados?formato=json",
+      "nota": "A diferença entre dataFinal e dataInicial não deve exceder 10 anos."
+    },
+    "gerado_em": "2026-03-08",
+    "total_series_mapeadas": 220
+  },
+
+  "categorias": {
+
+    "inflacao_precos": {
+      "label": "Inflação e Preços",
+      "descricao": "Índices de preços ao consumidor, preços por atacado e medidas de núcleo de inflação",
+      "subcategorias": {
+
+        "ipca_geral": {
+          "label": "IPCA - Índice Nacional de Preços ao Consumidor Amplo",
+          "series": [
+            { "codigo": 433,   "nome": "IPCA - Variação mensal",              "descricao": "Índice Nacional de Preços ao Consumidor Amplo - variação % mensal. Indicador oficial de inflação do Brasil.",                         "unidade": "% a.m.",    "periodicidade": "mensal",  "abrangencia": "Brasil" },
+            { "codigo": 13522, "nome": "IPCA - Variação acumulada 12 meses",  "descricao": "IPCA acumulado nos últimos 12 meses.",                                                                                                    "unidade": "%",         "periodicidade": "mensal",  "abrangencia": "Brasil" },
+            { "codigo": 7478,  "nome": "IPCA-15",                              "descricao": "Prévia do IPCA, calculada do dia 16 do mês anterior ao dia 15 do mês de referência.",                                                    "unidade": "% a.m.",    "periodicidade": "mensal",  "abrangencia": "Brasil" },
+            { "codigo": 10764, "nome": "IPCA-E",                               "descricao": "IPCA Especial - variação acumulada no trimestre civil.",                                                                                  "unidade": "%",         "periodicidade": "trimestral", "abrangencia": "Brasil" }
+          ]
+        },
+
+        "ipca_componentes": {
+          "label": "IPCA - Grupos e Componentes",
+          "series": [
+            { "codigo": 1635,  "nome": "IPCA - Alimentação e bebidas",         "descricao": "Variação mensal do grupo Alimentação e bebidas no IPCA.",                    "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1636,  "nome": "IPCA - Habitação",                     "descricao": "Variação mensal do grupo Habitação no IPCA.",                                "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1637,  "nome": "IPCA - Artigos de residência",         "descricao": "Variação mensal do grupo Artigos de residência no IPCA.",                    "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1638,  "nome": "IPCA - Vestuário",                     "descricao": "Variação mensal do grupo Vestuário no IPCA.",                                "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1639,  "nome": "IPCA - Transportes",                   "descricao": "Variação mensal do grupo Transportes no IPCA.",                              "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1640,  "nome": "IPCA - Comunicação",                   "descricao": "Variação mensal do grupo Comunicação no IPCA.",                              "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1641,  "nome": "IPCA - Saúde e cuidados pessoais",     "descricao": "Variação mensal do grupo Saúde e cuidados pessoais no IPCA.",                "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1642,  "nome": "IPCA - Despesas pessoais",             "descricao": "Variação mensal do grupo Despesas pessoais no IPCA.",                        "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1643,  "nome": "IPCA - Educação",                      "descricao": "Variação mensal do grupo Educação no IPCA.",                                 "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        },
+
+        "ipca_natureza": {
+          "label": "IPCA - Classificação por Natureza e Durabilidade",
+          "series": [
+            { "codigo": 11428, "nome": "IPCA - Itens livres",                  "descricao": "Variação de preços dos itens livres (não monitorados pelo governo).",        "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 4447,  "nome": "IPCA - Comercializáveis",              "descricao": "Preços de bens e serviços comercializáveis (sujeitos à concorrência externa).", "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 4448,  "nome": "IPCA - Não-comercializáveis",          "descricao": "Preços de bens e serviços não sujeitos à concorrência externa.",             "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 4449,  "nome": "IPCA - Monitorados",                   "descricao": "Preços administrados ou monitorados pelo governo (energia, combustíveis, tarifas).", "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 10843, "nome": "IPCA - Duráveis",                      "descricao": "Variação de preços de bens duráveis.",                                        "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 10842, "nome": "IPCA - Semiduráveis",                  "descricao": "Variação de preços de bens semiduráveis.",                                   "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 10841, "nome": "IPCA - Não-duráveis",                  "descricao": "Variação de preços de bens não-duráveis.",                                   "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 10844, "nome": "IPCA - Serviços",                      "descricao": "Variação de preços do setor de serviços.",                                   "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        },
+
+        "ipca_nucleos": {
+          "label": "IPCA - Núcleos de Inflação",
+          "series": [
+            { "codigo": 1621,  "nome": "IPCA - Núcleo por exclusão Ex-1",              "descricao": "Núcleo do IPCA excluindo alimentação no domicílio e energia.",                    "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 16121, "nome": "IPCA - Núcleo por exclusão Ex-2",              "descricao": "Núcleo do IPCA por exclusão - versão 2 (exclui outros itens voláteis).",           "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 4466,  "nome": "IPCA - Núcleo médias aparadas com suavização", "descricao": "Núcleo calculado pela média aparada dos itens com suavização de preços monitorados.", "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 16122, "nome": "IPCA - Núcleo de dupla ponderação",            "descricao": "Núcleo do IPCA calculado pelo método de dupla ponderação.",                        "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        },
+
+        "inpc": {
+          "label": "INPC - Índice Nacional de Preços ao Consumidor",
+          "series": [
+            { "codigo": 188, "nome": "INPC - Variação mensal", "descricao": "Índice Nacional de Preços ao Consumidor - mede variação de preços para famílias com renda de 1 a 5 salários mínimos.", "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        },
+
+        "igp": {
+          "label": "IGP - Índices Gerais de Preços (FGV)",
+          "series": [
+            { "codigo": 189,  "nome": "IGP-M",                         "descricao": "Índice Geral de Preços do Mercado - calculado da última semana do mês anterior até a penúltima semana do mês de referência. Usado em reajustes de contratos de aluguel.", "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 7448, "nome": "IGP-M - 1º decêndio",           "descricao": "IGP-M parcial calculado no primeiro decêndio (10 dias) do mês.",                                  "unidade": "%",      "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 7449, "nome": "IGP-M - 2º decêndio",           "descricao": "IGP-M parcial calculado no segundo decêndio do mês.",                                              "unidade": "%",      "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 190,  "nome": "IGP-DI",                        "descricao": "Índice Geral de Preços - Disponibilidade Interna, calculado do dia 1 ao dia 30 do mês de referência.", "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 7447, "nome": "IGP-10",                        "descricao": "Índice Geral de Preços - calculado do dia 11 do mês anterior ao dia 10 do mês de referência.",       "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 7450, "nome": "IPA-M (Atacado - IGP-M)",       "descricao": "Índice de Preços por Atacado ponderado para o IGP-M.",                                             "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 225,  "nome": "IPA-DI - Geral (Atacado)",      "descricao": "Índice de Preços por Atacado - Disponibilidade Interna, componente geral.",                        "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 7459, "nome": "IPA-DI - Industriais",          "descricao": "IPA-DI para produtos industriais.",                                                                 "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 7460, "nome": "IPA-DI - Agrícolas",            "descricao": "IPA-DI para produtos agrícolas.",                                                                   "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        },
+
+        "ipc_fipe": {
+          "label": "IPC-FIPE - Índice de Preços ao Consumidor (FIPE/USP)",
+          "series": [
+            { "codigo": 193, "nome": "IPC-Fipe - Mensal",      "descricao": "Índice de Preços ao Consumidor calculado pela FIPE para o município de São Paulo.", "unidade": "% a.m.", "periodicidade": "mensal",  "abrangencia": "São Paulo - SP" },
+            { "codigo": 7463,"nome": "IPC-Fipe - 1ª quinzena", "descricao": "Prévia mensal do IPC-Fipe medida na primeira quinzena.",                            "unidade": "%",      "periodicidade": "quinzenal", "abrangencia": "São Paulo - SP" },
+            { "codigo": 272, "nome": "IPC-Fipe - 2ª quinzena", "descricao": "Prévia mensal do IPC-Fipe medida na segunda quinzena.",                             "unidade": "%",      "periodicidade": "quinzenal", "abrangencia": "São Paulo - SP" },
+            { "codigo": 7464,"nome": "IPC-Fipe - 3ª quinzena", "descricao": "Leitura do IPC-Fipe medida na terceira quinzena.",                                  "unidade": "%",      "periodicidade": "quinzenal", "abrangencia": "São Paulo - SP" }
+          ]
+        },
+
+        "outros_indices": {
+          "label": "Outros Índices de Preços",
+          "series": [
+            { "codigo": 191,   "nome": "IPC-DI",      "descricao": "Índice de Preços ao Consumidor - Disponibilidade Interna (FGV).",                               "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 194,   "nome": "ICV-Dieese",  "descricao": "Índice do Custo de Vida calculado pelo Dieese para o município de São Paulo.",                  "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "São Paulo - SP" },
+            { "codigo": 17680, "nome": "IPC-C1",      "descricao": "Índice de Preços ao Consumidor para a faixa de renda C1 (FGV).",                                "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 17679, "nome": "IPC-3i",      "descricao": "Índice de Preços ao Consumidor para a terceira idade (FGV).",                                   "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        },
+
+        "cesta_basica_por_capital": {
+          "label": "Cesta Básica - Valor por Capital",
+          "descricao": "Valor monetário da cesta básica de alimentos em cada capital, calculado pelo Dieese.",
+          "series": [
+            { "codigo": 7479, "nome": "Cesta básica - Aracaju",       "descricao": "Valor da cesta básica em Aracaju (SE).",       "unidade": "R$", "periodicidade": "mensal", "abrangencia": "Aracaju - SE" },
+            { "codigo": 7480, "nome": "Cesta básica - Belém",         "descricao": "Valor da cesta básica em Belém (PA).",         "unidade": "R$", "periodicidade": "mensal", "abrangencia": "Belém - PA" },
+            { "codigo": 7481, "nome": "Cesta básica - Belo Horizonte","descricao": "Valor da cesta básica em Belo Horizonte (MG).","unidade": "R$", "periodicidade": "mensal", "abrangencia": "Belo Horizonte - MG" },
+            { "codigo": 7482, "nome": "Cesta básica - Brasília",      "descricao": "Valor da cesta básica em Brasília (DF).",      "unidade": "R$", "periodicidade": "mensal", "abrangencia": "Brasília - DF" },
+            { "codigo": 7483, "nome": "Cesta básica - Curitiba",      "descricao": "Valor da cesta básica em Curitiba (PR).",      "unidade": "R$", "periodicidade": "mensal", "abrangencia": "Curitiba - PR" },
+            { "codigo": 7484, "nome": "Cesta básica - Florianópolis", "descricao": "Valor da cesta básica em Florianópolis (SC).", "unidade": "R$", "periodicidade": "mensal", "abrangencia": "Florianópolis - SC" },
+            { "codigo": 7485, "nome": "Cesta básica - Fortaleza",     "descricao": "Valor da cesta básica em Fortaleza (CE).",     "unidade": "R$", "periodicidade": "mensal", "abrangencia": "Fortaleza - CE" },
+            { "codigo": 7486, "nome": "Cesta básica - Goiânia",       "descricao": "Valor da cesta básica em Goiânia (GO).",       "unidade": "R$", "periodicidade": "mensal", "abrangencia": "Goiânia - GO" },
+            { "codigo": 7487, "nome": "Cesta básica - João Pessoa",   "descricao": "Valor da cesta básica em João Pessoa (PB).",   "unidade": "R$", "periodicidade": "mensal", "abrangencia": "João Pessoa - PB" },
+            { "codigo": 7488, "nome": "Cesta básica - Natal",         "descricao": "Valor da cesta básica em Natal (RN).",         "unidade": "R$", "periodicidade": "mensal", "abrangencia": "Natal - RN" },
+            { "codigo": 7489, "nome": "Cesta básica - Porto Alegre",  "descricao": "Valor da cesta básica em Porto Alegre (RS).",  "unidade": "R$", "periodicidade": "mensal", "abrangencia": "Porto Alegre - RS" },
+            { "codigo": 7490, "nome": "Cesta básica - Recife",        "descricao": "Valor da cesta básica em Recife (PE).",        "unidade": "R$", "periodicidade": "mensal", "abrangencia": "Recife - PE" },
+            { "codigo": 7491, "nome": "Cesta básica - Rio de Janeiro","descricao": "Valor da cesta básica no Rio de Janeiro (RJ).","unidade": "R$", "periodicidade": "mensal", "abrangencia": "Rio de Janeiro - RJ" },
+            { "codigo": 7492, "nome": "Cesta básica - Salvador",      "descricao": "Valor da cesta básica em Salvador (BA).",      "unidade": "R$", "periodicidade": "mensal", "abrangencia": "Salvador - BA" },
+            { "codigo": 7493, "nome": "Cesta básica - São Paulo",     "descricao": "Valor da cesta básica em São Paulo (SP).",     "unidade": "R$", "periodicidade": "mensal", "abrangencia": "São Paulo - SP" },
+            { "codigo": 7494, "nome": "Cesta básica - Vitória",       "descricao": "Valor da cesta básica em Vitória (ES).",       "unidade": "R$", "periodicidade": "mensal", "abrangencia": "Vitória - ES" }
+          ]
+        }
+      }
+    },
+
+    "taxas_de_juros": {
+      "label": "Taxas de Juros",
+      "descricao": "Taxas de juros de referência, taxas básicas e aplicações financeiras",
+      "subcategorias": {
+
+        "selic": {
+          "label": "Taxa Selic",
+          "series": [
+            { "codigo": 432,  "nome": "Selic - Meta (% a.a.)",            "descricao": "Meta para a Taxa Selic definida pelo COPOM. Principal instrumento de política monetária do BCB.", "unidade": "% a.a.", "periodicidade": "mensal",  "abrangencia": "Brasil" },
+            { "codigo": 11,   "nome": "Selic - Diária (%)",               "descricao": "Taxa Selic diária (fator acumulado diário).",                                                      "unidade": "% a.d.", "periodicidade": "diária",   "abrangencia": "Brasil" },
+            { "codigo": 4189, "nome": "Selic - Overnight (% a.a.)",       "descricao": "Taxa Selic overnight anualizada, apurada em cada dia útil.",                                       "unidade": "% a.a.", "periodicidade": "diária",   "abrangencia": "Brasil" },
+            { "codigo": 4390, "nome": "Selic - Acumulada no mês (% a.m.)","descricao": "Taxa Selic acumulada no mês de referência.",                                                       "unidade": "% a.m.", "periodicidade": "mensal",   "abrangencia": "Brasil" }
+          ]
+        },
+
+        "cdi": {
+          "label": "CDI - Certificado de Depósito Interbancário",
+          "series": [
+            { "codigo": 12,   "nome": "CDI - Diária (%)",              "descricao": "Taxa CDI diária (fator acumulado diário). Referência para investimentos de renda fixa.", "unidade": "% a.d.", "periodicidade": "diária",  "abrangencia": "Brasil" },
+            { "codigo": 4392, "nome": "CDI - Overnight (% a.a.)",      "descricao": "Taxa CDI overnight anualizada.",                                                          "unidade": "% a.a.", "periodicidade": "diária",  "abrangencia": "Brasil" }
+          ]
+        },
+
+        "referencias": {
+          "label": "Outras Taxas de Referência",
+          "series": [
+            { "codigo": 226, "nome": "TR - Taxa Referencial",        "descricao": "Taxa Referencial, usada para corrigir rendimentos da poupança e FGTS.",                   "unidade": "% a.m.", "periodicidade": "mensal",  "abrangencia": "Brasil" },
+            { "codigo": 253, "nome": "TBF - Taxa Básica Financeira",  "descricao": "Taxa Básica Financeira, base de cálculo da TR.",                                          "unidade": "% a.m.", "periodicidade": "mensal",  "abrangencia": "Brasil" },
+            { "codigo": 256, "nome": "TJLP - Taxa de Juros de Longo Prazo", "descricao": "Taxa de Juros de Longo Prazo, usada em operações de financiamento do BNDES.",      "unidade": "% a.a.", "periodicidade": "trimestral","abrangencia": "Brasil" }
+          ]
+        },
+
+        "poupanca": {
+          "label": "Poupança",
+          "series": [
+            { "codigo": 196, "nome": "Poupança - Taxa de rendimento mensal", "descricao": "Rentabilidade mensal da caderneta de poupança (antigas e novas regras).",          "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 23,  "nome": "Poupança - Saldo das aplicações",      "descricao": "Saldo total das aplicações em caderneta de poupança (R$ milhões).",               "unidade": "R$ mi",  "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        },
+
+        "aplicacoes_financeiras": {
+          "label": "CDB e Outras Aplicações",
+          "series": [
+            { "codigo": 18,   "nome": "CDB - Taxa média",               "descricao": "Taxa média dos Certificados de Depósito Bancário.",                                  "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 15,   "nome": "CDB - Prazo médio (dias)",       "descricao": "Prazo médio dos CDBs negociados.",                                                   "unidade": "dias",   "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 19,   "nome": "CDB - Taxa (30 dias)",           "descricao": "Taxa dos CDBs de até 30 dias.",                                                      "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 30,   "nome": "CDB - PJ não financeira",        "descricao": "Taxa de CDB para pessoa jurídica não financeira.",                                   "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 32,   "nome": "CDB - PF",                       "descricao": "Taxa de CDB para pessoa física.",                                                    "unidade": "% a.m.", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        },
+
+        "credito_taxas": {
+          "label": "Taxas de Juros de Crédito",
+          "series": [
+            { "codigo": 20721, "nome": "Crédito total - Taxa média de juros",            "descricao": "Taxa média de juros das operações de crédito do SFN - total.",                          "unidade": "% a.a.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 20714, "nome": "Crédito livre PF - Taxa média de juros",         "descricao": "Taxa média de juros das operações de crédito livre para pessoas físicas.",              "unidade": "% a.a.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 20715, "nome": "Crédito livre PJ - Taxa média de juros",         "descricao": "Taxa média de juros das operações de crédito livre para pessoas jurídicas.",            "unidade": "% a.a.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 20724, "nome": "Crédito PJ - Capital de giro rotativo",          "descricao": "Taxa média de juros das operações de capital de giro rotativo para pessoas jurídicas.", "unidade": "% a.a.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 25403, "nome": "Crédito PF - Cheque especial",                   "descricao": "Taxa média de juros do cheque especial para pessoas físicas.",                          "unidade": "% a.a.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 21112, "nome": "Crédito PF - Cartão de crédito rotativo",        "descricao": "Taxa média de juros do cartão de crédito rotativo para pessoas físicas.",              "unidade": "% a.a.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 20707, "nome": "Crédito PF - Crédito pessoal total",             "descricao": "Taxa média de juros do crédito pessoal total para pessoas físicas.",                   "unidade": "% a.a.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 20740, "nome": "Crédito PF - Crédito consignado INSS",           "descricao": "Taxa média de juros do crédito consignado para aposentados e pensionistas do INSS.",  "unidade": "% a.a.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 20748, "nome": "Crédito PF - Aquisição de veículo",              "descricao": "Taxa média de juros do crédito para aquisição de veículos por pessoas físicas.",      "unidade": "% a.a.", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 20762, "nome": "Crédito imobiliário - SFH taxa média",           "descricao": "Taxa média de juros do crédito imobiliário no âmbito do SFH.",                        "unidade": "% a.a.", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        }
+      }
+    },
+
+    "cambio": {
+      "label": "Câmbio",
+      "descricao": "Taxas de câmbio de moedas estrangeiras frente ao Real Brasileiro",
+      "subcategorias": {
+
+        "dolar": {
+          "label": "Dólar Americano (USD)",
+          "series": [
+            { "codigo": 1,     "nome": "Dólar (venda) - mercado livre - diário",       "descricao": "Taxa de câmbio do dólar americano (venda) no mercado livre, cotação diária. Série histórica desde 1984.", "unidade": "R$/USD", "periodicidade": "diária",  "abrangencia": "Brasil" },
+            { "codigo": 10813, "nome": "Dólar (compra) - mercado livre - diário",      "descricao": "Taxa de câmbio do dólar americano (compra) no mercado livre, cotação diária.",                            "unidade": "R$/USD", "periodicidade": "diária",  "abrangencia": "Brasil" },
+            { "codigo": 3697,  "nome": "Dólar (venda) - PTAX - fim de período",        "descricao": "Cotação PTAX do dólar (venda) no fim do período, divulgada pelo BCB.",                                    "unidade": "R$/USD", "periodicidade": "diária",  "abrangencia": "Brasil" },
+            { "codigo": 3698,  "nome": "Dólar (compra) - PTAX - fim de período",       "descricao": "Cotação PTAX do dólar (compra) no fim do período, divulgada pelo BCB.",                                   "unidade": "R$/USD", "periodicidade": "diária",  "abrangencia": "Brasil" },
+            { "codigo": 3692,  "nome": "Dólar (venda) - livre - fim de período - anual","descricao": "Taxa de câmbio livre dólar (venda) no fim do período, série anual (desde 1899).",                       "unidade": "R$/USD", "periodicidade": "anual",   "abrangencia": "Brasil" },
+            { "codigo": 27568, "nome": "Dólar (compra) - PTAX mensal",                 "descricao": "Cotação PTAX do dólar (compra), média mensal.",                                                            "unidade": "R$/USD", "periodicidade": "mensal",  "abrangencia": "Brasil" }
+          ]
+        },
+
+        "euro": {
+          "label": "Euro (EUR)",
+          "series": [
+            { "codigo": 21619, "nome": "Euro (venda) - diário",  "descricao": "Taxa de câmbio do Euro (venda) frente ao Real, cotação diária.", "unidade": "R$/EUR", "periodicidade": "diária", "abrangencia": "Brasil" },
+            { "codigo": 21620, "nome": "Euro (compra) - diário", "descricao": "Taxa de câmbio do Euro (compra) frente ao Real, cotação diária.", "unidade": "R$/EUR", "periodicidade": "diária", "abrangencia": "Brasil" }
+          ]
+        },
+
+        "outras_moedas": {
+          "label": "Outras Moedas",
+          "series": [
+            { "codigo": 21621, "nome": "Iene japonês (venda) - JPY",      "descricao": "Taxa de câmbio do Iene japonês (venda) frente ao Real.",     "unidade": "R$/JPY", "periodicidade": "diária", "abrangencia": "Brasil" },
+            { "codigo": 21622, "nome": "Iene japonês (compra) - JPY",     "descricao": "Taxa de câmbio do Iene japonês (compra) frente ao Real.",    "unidade": "R$/JPY", "periodicidade": "diária", "abrangencia": "Brasil" },
+            { "codigo": 21623, "nome": "Libra esterlina (venda) - GBP",   "descricao": "Taxa de câmbio da Libra esterlina (venda) frente ao Real.",  "unidade": "R$/GBP", "periodicidade": "diária", "abrangencia": "Brasil" },
+            { "codigo": 21624, "nome": "Libra esterlina (compra) - GBP",  "descricao": "Taxa de câmbio da Libra esterlina (compra) frente ao Real.", "unidade": "R$/GBP", "periodicidade": "diária", "abrangencia": "Brasil" },
+            { "codigo": 21625, "nome": "Franco suíço (venda) - CHF",      "descricao": "Taxa de câmbio do Franco suíço (venda) frente ao Real.",     "unidade": "R$/CHF", "periodicidade": "diária", "abrangencia": "Brasil" },
+            { "codigo": 21626, "nome": "Franco suíço (compra) - CHF",     "descricao": "Taxa de câmbio do Franco suíço (compra) frente ao Real.",    "unidade": "R$/CHF", "periodicidade": "diária", "abrangencia": "Brasil" },
+            { "codigo": 21627, "nome": "Dólar canadense (venda) - CAD",   "descricao": "Taxa de câmbio do Dólar canadense (venda) frente ao Real.",  "unidade": "R$/CAD", "periodicidade": "diária", "abrangencia": "Brasil" },
+            { "codigo": 21628, "nome": "Dólar canadense (compra) - CAD",  "descricao": "Taxa de câmbio do Dólar canadense (compra) frente ao Real.", "unidade": "R$/CAD", "periodicidade": "diária", "abrangencia": "Brasil" },
+            { "codigo": 21629, "nome": "Dólar australiano (venda) - AUD", "descricao": "Taxa de câmbio do Dólar australiano (venda) frente ao Real.","unidade": "R$/AUD", "periodicidade": "diária", "abrangencia": "Brasil" },
+            { "codigo": 21630, "nome": "Dólar australiano (compra) - AUD","descricao": "Taxa de câmbio do Dólar australiano (compra) frente ao Real.","unidade": "R$/AUD","periodicidade": "diária", "abrangencia": "Brasil" },
+            { "codigo": 21631, "nome": "Peso argentino (venda) - ARS",    "descricao": "Taxa de câmbio do Peso argentino (venda) frente ao Real.",   "unidade": "R$/ARS", "periodicidade": "diária", "abrangencia": "Brasil" },
+            { "codigo": 21632, "nome": "Peso argentino (compra) - ARS",   "descricao": "Taxa de câmbio do Peso argentino (compra) frente ao Real.",  "unidade": "R$/ARS", "periodicidade": "diária", "abrangencia": "Brasil" }
+          ]
+        }
+      }
+    },
+
+    "mercado_financeiro": {
+      "label": "Mercado Financeiro e de Capitais",
+      "descricao": "Ibovespa, ouro, ativos e indicadores do mercado de capitais",
+      "subcategorias": {
+
+        "bolsa": {
+          "label": "Bovespa / B3",
+          "series": [
+            { "codigo": 7, "nome": "Ibovespa - Pontos (fechamento)",      "descricao": "Índice Bovespa de fechamento diário (pontos). Reflete a performance das ações mais negociadas na B3.", "unidade": "pontos",  "periodicidade": "diária", "abrangencia": "Brasil" },
+            { "codigo": 8, "nome": "Ibovespa - Volume total negociado",   "descricao": "Volume financeiro total negociado na Bovespa (R$ milhões).",                                          "unidade": "R$ mi",   "periodicidade": "diária", "abrangencia": "Brasil" }
+          ]
+        },
+
+        "ouro": {
+          "label": "Ouro",
+          "series": [
+            { "codigo": 4, "nome": "Ouro BM&F - Por grama (R$)",           "descricao": "Preço do ouro na BM&F por grama, em Reais.",                    "unidade": "R$/g",  "periodicidade": "diária", "abrangencia": "Brasil" },
+            { "codigo": 5, "nome": "Ouro Londres - Por onça troy (US$)",   "descricao": "Preço do ouro no mercado de Londres, em dólares por onça troy.","unidade": "US$/oz","periodicidade": "diária", "abrangencia": "Internacional" }
+          ]
+        },
+
+        "agregados_monetarios": {
+          "label": "Agregados Monetários (Base Monetária e M1–M4)",
+          "series": [
+            { "codigo": 1788,  "nome": "Base Monetária (M0)",             "descricao": "Base monetária - papel-moeda emitido mais reservas bancárias (R$ milhões).",              "unidade": "R$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1833,  "nome": "M1 - Meios de pagamento restrito","descricao": "Papel-moeda em poder do público + depósitos à vista (R$ milhões).",                      "unidade": "R$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 27791, "nome": "M2 - Meios de pagamento amplo",   "descricao": "M1 + depósitos a prazo + poupança + títulos emitidos por IF (R$ milhões).",              "unidade": "R$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 27810, "nome": "M3",                               "descricao": "M2 + cotas de fundos de renda fixa + títulos públicos federais em fundos (R$ milhões).", "unidade": "R$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 27815, "nome": "M4",                               "descricao": "M3 + títulos públicos de alta liquidez fora do BCB (R$ milhões).",                       "unidade": "R$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 4382,  "nome": "PIB acumulado 12 meses (valores correntes)","descricao": "Soma do PIB nos últimos 12 meses a preços correntes. Usado como denominador em cálculos de % do PIB.", "unidade": "R$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        }
+      }
+    },
+
+    "credito": {
+      "label": "Crédito do Sistema Financeiro Nacional",
+      "descricao": "Saldos de carteira de crédito, inadimplência e indicadores de crédito por segmento",
+      "subcategorias": {
+
+        "saldos_credito": {
+          "label": "Saldos das Operações de Crédito",
+          "series": [
+            { "codigo": 20542, "nome": "Crédito SFN - Recursos livres - Total",               "descricao": "Saldo total da carteira de crédito com recursos livres (PF + PJ).",                 "unidade": "R$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 20570, "nome": "Crédito SFN - Recursos livres - PF",                  "descricao": "Saldo da carteira de crédito com recursos livres para pessoas físicas.",             "unidade": "R$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 20581, "nome": "Crédito SFN - Recursos livres - PJ",                  "descricao": "Saldo da carteira de crédito com recursos livres para pessoas jurídicas.",           "unidade": "R$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28622, "nome": "Crédito SFN - Saldo total",                           "descricao": "Saldo total das operações de crédito do Sistema Financeiro Nacional.",               "unidade": "R$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28640, "nome": "Crédito SFN - Recursos direcionados - PF",            "descricao": "Saldo de crédito com recursos direcionados (habitação, rural, BNDES) para PF.",     "unidade": "R$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28641, "nome": "Crédito SFN - Recursos direcionados - PJ",            "descricao": "Saldo de crédito com recursos direcionados para pessoas jurídicas.",                 "unidade": "R$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 20590, "nome": "Crédito SFN - Habitacional - Total",                  "descricao": "Saldo do crédito habitacional (SFH e outros) do SFN.",                              "unidade": "R$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 20616, "nome": "Crédito SFN - Rural - Total",                         "descricao": "Saldo do crédito rural do SFN.",                                                     "unidade": "R$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 20619, "nome": "Crédito SFN - BNDES - Total",                         "descricao": "Saldo das operações de crédito do BNDES.",                                          "unidade": "R$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        },
+
+        "inadimplencia": {
+          "label": "Inadimplência",
+          "series": [
+            { "codigo": 21082, "nome": "Inadimplência - Crédito livre - PF",   "descricao": "Taxa de inadimplência das operações de crédito livre para pessoas físicas (atrasos > 90 dias).", "unidade": "%", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 21083, "nome": "Inadimplência - Crédito livre - PJ",   "descricao": "Taxa de inadimplência das operações de crédito livre para pessoas jurídicas.",                   "unidade": "%", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 25389, "nome": "Inadimplência - Crédito total SFN",    "descricao": "Taxa de inadimplência total do SFN (PF e PJ, livres e direcionados).",                          "unidade": "%", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        }
+      }
+    },
+
+    "atividade_economica": {
+      "label": "Atividade Econômica",
+      "descricao": "PIB, produção industrial, comércio varejista, construção e indicadores de atividade",
+      "subcategorias": {
+
+        "pib": {
+          "label": "PIB - Produto Interno Bruto",
+          "series": [
+            { "codigo": 1207,  "nome": "PIB - Preços correntes (R$ mi - anual)",        "descricao": "Produto Interno Bruto a preços correntes, em R$ milhões (série anual).",                                      "unidade": "R$ mi",   "periodicidade": "anual",      "abrangencia": "Brasil" },
+            { "codigo": 1208,  "nome": "PIB - R$ do último ano (deflacionado)",          "descricao": "PIB em Reais do último ano disponível (série deflacionada/volume).",                                          "unidade": "R$ mi",   "periodicidade": "anual",      "abrangencia": "Brasil" },
+            { "codigo": 7324,  "nome": "PIB - Em dólares americanos",                   "descricao": "Produto Interno Bruto em US$ bilhões.",                                                                        "unidade": "US$ bi",  "periodicidade": "anual",      "abrangencia": "Brasil" },
+            { "codigo": 22099, "nome": "PIB - Trimestral (índice encadeado)",            "descricao": "PIB trimestral - índice encadeado com ajuste sazonal (variação em relação ao trimestre anterior).",         "unidade": "índice",  "periodicidade": "trimestral", "abrangencia": "Brasil" },
+            { "codigo": 22097, "nome": "PIB - Valor adicionado total trimestral",        "descricao": "Valor adicionado bruto total a preços básicos - série trimestral.",                                          "unidade": "R$ mi",   "periodicidade": "trimestral", "abrangencia": "Brasil" },
+            { "codigo": 22083, "nome": "PIB - Agropecuária (trimestral)",                "descricao": "Valor adicionado bruto da Agropecuária, trimestral.",                                                         "unidade": "R$ mi",   "periodicidade": "trimestral", "abrangencia": "Brasil" },
+            { "codigo": 22084, "nome": "PIB - Indústria (trimestral)",                   "descricao": "Valor adicionado bruto da Indústria, trimestral.",                                                            "unidade": "R$ mi",   "periodicidade": "trimestral", "abrangencia": "Brasil" },
+            { "codigo": 22089, "nome": "PIB - Serviços (trimestral)",                    "descricao": "Valor adicionado bruto dos Serviços, trimestral.",                                                            "unidade": "R$ mi",   "periodicidade": "trimestral", "abrangencia": "Brasil" },
+            { "codigo": 22100, "nome": "PIB - Consumo das famílias (trimestral)",        "descricao": "Despesa das famílias com consumo final, série trimestral.",                                                   "unidade": "R$ mi",   "periodicidade": "trimestral", "abrangencia": "Brasil" },
+            { "codigo": 22101, "nome": "PIB - Consumo do governo (trimestral)",          "descricao": "Consumo final do governo geral, série trimestral.",                                                           "unidade": "R$ mi",   "periodicidade": "trimestral", "abrangencia": "Brasil" },
+            { "codigo": 22102, "nome": "PIB - FBCF / Investimento (trimestral)",         "descricao": "Formação Bruta de Capital Fixo (investimentos em máquinas, equipamentos e construção), trimestral.",       "unidade": "R$ mi",   "periodicidade": "trimestral", "abrangencia": "Brasil" },
+            { "codigo": 22103, "nome": "PIB - Exportações (trimestral)",                 "descricao": "Exportações de bens e serviços, série trimestral.",                                                           "unidade": "R$ mi",   "periodicidade": "trimestral", "abrangencia": "Brasil" },
+            { "codigo": 22104, "nome": "PIB - Importações (trimestral)",                 "descricao": "Importações de bens e serviços, série trimestral.",                                                           "unidade": "R$ mi",   "periodicidade": "trimestral", "abrangencia": "Brasil" },
+            { "codigo": 21774, "nome": "População total (milhões)",                      "descricao": "Estimativa da população total do Brasil em milhões de habitantes.",                                          "unidade": "milhões", "periodicidade": "anual",      "abrangencia": "Brasil" },
+            { "codigo": 21775, "nome": "PIB per capita - R$ correntes",                  "descricao": "PIB per capita em Reais correntes.",                                                                          "unidade": "R$",      "periodicidade": "anual",      "abrangencia": "Brasil" },
+            { "codigo": 21776, "nome": "PIB per capita - US$",                           "descricao": "PIB per capita em dólares americanos.",                                                                       "unidade": "US$",     "periodicidade": "anual",      "abrangencia": "Brasil" },
+            { "codigo": 21777, "nome": "PIB per capita - R$ do último ano",              "descricao": "PIB per capita em Reais do último ano disponível (deflacionado).",                                          "unidade": "R$",      "periodicidade": "anual",      "abrangencia": "Brasil" }
+          ]
+        },
+
+        "producao_industrial": {
+          "label": "Produção Industrial (IBGE/PIM-PF)",
+          "series": [
+            { "codigo": 21858, "nome": "Produção industrial - Geral (índice)",                       "descricao": "Índice geral da produção industrial brasileira (IBGE - PIM-PF).",                        "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 21859, "nome": "Produção industrial - Total (variação %)",                   "descricao": "Variação percentual mensal da produção industrial total.",                               "unidade": "%",      "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 21861, "nome": "Produção industrial - Extrativa mineral",                    "descricao": "Índice de produção da indústria extrativa mineral.",                                     "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 21862, "nome": "Produção industrial - Indústria de transformação",           "descricao": "Índice de produção da indústria de transformação.",                                      "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 21863, "nome": "Produção industrial - Bens de capital",                      "descricao": "Índice de produção de bens de capital (máquinas, equipamentos).",                       "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 21864, "nome": "Produção industrial - Bens intermediários",                  "descricao": "Índice de produção de bens intermediários.",                                            "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 21865, "nome": "Produção industrial - Bens de consumo geral",                "descricao": "Índice de produção de bens de consumo (total).",                                        "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 21866, "nome": "Produção industrial - Bens de consumo duráveis",             "descricao": "Índice de produção de bens de consumo duráveis.",                                       "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 21867, "nome": "Produção industrial - Bens de consumo não-duráveis/semidur.","descricao": "Índice de produção de bens de consumo não-duráveis e semiduráveis.",                   "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 21868, "nome": "Produção de insumos da construção civil",                    "descricao": "Índice de produção de insumos típicos para a construção civil.",                       "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28503, "nome": "Produção industrial - Total (dessazonalizado)",               "descricao": "Índice de produção industrial total, com ajuste sazonal.",                             "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28505, "nome": "Produção industrial - Transformação (dessaz.)",               "descricao": "Índice de produção da indústria de transformação, dessazonalizado.",                   "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        },
+
+        "autoveiculos": {
+          "label": "Produção e Licenciamentos de Autoveículos (Anfavea)",
+          "series": [
+            { "codigo": 1373, "nome": "Autoveículos - Produção total",                          "descricao": "Produção total de autoveículos no Brasil (unidades).",                                "unidade": "unidades", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1374, "nome": "Autoveículos - Automóveis e comerciais leves",            "descricao": "Produção de automóveis e veículos comerciais leves.",                                 "unidade": "unidades", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1375, "nome": "Autoveículos - Caminhões",                                "descricao": "Produção de caminhões.",                                                              "unidade": "unidades", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1376, "nome": "Autoveículos - Ônibus",                                   "descricao": "Produção de ônibus.",                                                                "unidade": "unidades", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1379, "nome": "Autoveículos - Licenciamentos nacionais novos",           "descricao": "Licenciamentos de autoveículos nacionais novos (emplacamentos).",                    "unidade": "unidades", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1380, "nome": "Autoveículos - Exportações",                              "descricao": "Exportação de autoveículos.",                                                        "unidade": "unidades", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1378, "nome": "Autoveículos - Total licenciamentos + exportações",       "descricao": "Soma de licenciamentos nacionais e exportações.",                                    "unidade": "unidades", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        },
+
+        "comercio_varejo": {
+          "label": "Comércio Varejista (PMC/IBGE)",
+          "series": [
+            { "codigo": 1455,  "nome": "Varejo - Volume de vendas - Geral",                      "descricao": "Índice de volume de vendas no comércio varejista geral.",                           "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 20106, "nome": "Varejo ampliado - Volume de vendas",                     "descricao": "Índice do comércio varejista ampliado (inclui veículos e material de construção).","unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1496,  "nome": "Varejo - Hipermercados, supermercados e alimentos",      "descricao": "Volume de vendas de hipermercados, supermercados, alimentos, bebidas e fumo.",      "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1522,  "nome": "Varejo - Móveis e eletrodomésticos",                    "descricao": "Volume de vendas de móveis e eletrodomésticos.",                                     "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1548,  "nome": "Varejo - Automóveis, motos, partes e peças",             "descricao": "Volume de vendas de automóveis, motocicletas, partes e peças.",                    "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 20105, "nome": "Varejo - Material de construção",                       "descricao": "Volume de vendas de material de construção.",                                        "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28473, "nome": "Varejo - Geral (dessazonalizado)",                       "descricao": "Índice de volume de vendas no comércio varejista geral, ajuste sazonal.",           "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28485, "nome": "Varejo ampliado (dessazonalizado)",                      "descricao": "Índice do comércio varejista ampliado, com ajuste sazonal.",                       "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        },
+
+        "outros_indicadores_atividade": {
+          "label": "Outros Indicadores de Atividade",
+          "series": [
+            { "codigo": 7357,  "nome": "Produção de aço bruto (mil t)",             "descricao": "Produção mensal de aço bruto em mil toneladas.",                                              "unidade": "mil t",  "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1389,  "nome": "Produção de petróleo - Óleo bruto",         "descricao": "Produção de petróleo óleo bruto em barris/dia.",                                              "unidade": "barris/dia", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1392,  "nome": "Produção de gás natural",                   "descricao": "Produção de gás natural em m³/dia.",                                                         "unidade": "m³/dia", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 7414,  "nome": "Vendas reais - ABRAS (supermercados)",      "descricao": "Índice de vendas reais dos supermercados (ABRAS - Associação Brasileira de Supermercados).", "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1338,  "nome": "Vendas industriais reais",                  "descricao": "Índice de vendas industriais reais (IBGE).",                                                 "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28552, "nome": "Tráfego veículos pesados - Rodovias pedagiadas","descricao": "Tráfego de veículos pesados (caminhões) nas estradas pedagiadas. Proxy de atividade industrial.", "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1453,  "nome": "Consultas ao SPC",                          "descricao": "Número de consultas ao Serviço de Proteção ao Crédito (SPC), indicador de intenção de compra.", "unidade": "milhares", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 1454,  "nome": "Consultas ao Usecheque",                    "descricao": "Número de consultas ao sistema Usecheque.",                                                   "unidade": "milhares", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28547, "nome": "Consultas ao Serasa",                       "descricao": "Número de consultas ao Serasa. Proxy de atividade creditícia.",                              "unidade": "milhares", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 7415,  "nome": "Desembolso BNDES",                          "descricao": "Desembolsos realizados pelo BNDES (R$ milhões).",                                            "unidade": "R$ mi",  "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        },
+
+        "indices_dessazonalizados": {
+          "label": "Séries Dessazonalizadas - Atividade",
+          "series": [
+            { "codigo": 28503, "nome": "Produção industrial total - dessaz.",      "descricao": "Índice da produção industrial total com ajuste sazonal.",               "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28504, "nome": "Produção extrativa mineral - dessaz.",     "descricao": "Índice da produção extrativa mineral com ajuste sazonal.",               "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28505, "nome": "Produção transformação - dessaz.",         "descricao": "Índice da indústria de transformação com ajuste sazonal.",               "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28506, "nome": "Bens de capital - dessaz.",                "descricao": "Produção de bens de capital com ajuste sazonal.",                        "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28507, "nome": "Bens intermediários - dessaz.",            "descricao": "Produção de bens intermediários com ajuste sazonal.",                    "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28508, "nome": "Bens de consumo geral - dessaz.",          "descricao": "Produção de bens de consumo geral com ajuste sazonal.",                  "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28509, "nome": "Bens de consumo duráveis - dessaz.",       "descricao": "Produção de bens de consumo duráveis com ajuste sazonal.",               "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28510, "nome": "Bens de consumo não-duráveis/semidur. - dessaz.", "descricao": "Produção de bens de consumo não-duráveis e semiduráveis com ajuste sazonal.", "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28511, "nome": "Insumos construção civil - dessaz.",       "descricao": "Produção de insumos da construção civil com ajuste sazonal.",            "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28527, "nome": "Produção autoveículos - dessaz.",          "descricao": "Produção total de autoveículos com ajuste sazonal.",                     "unidade": "unidades","periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        }
+      }
+    },
+
+    "emprego_e_renda": {
+      "label": "Emprego, Renda e Trabalho",
+      "descricao": "Indicadores do mercado de trabalho: desemprego, emprego formal, rendimento e massa salarial",
+      "subcategorias": {
+
+        "mercado_trabalho_pnad": {
+          "label": "Mercado de Trabalho - PNAD Contínua (IBGE)",
+          "series": [
+            { "codigo": 24369, "nome": "Taxa de desocupação - Brasil",                    "descricao": "Taxa de desemprego no Brasil pela PNAD Contínua (% da força de trabalho).",                    "unidade": "%",      "periodicidade": "trimestral", "abrangencia": "Brasil" },
+            { "codigo": 24378, "nome": "Força de trabalho (milhões)",                     "descricao": "Total de pessoas na força de trabalho (ocupados + desocupados) em milhões.",                   "unidade": "milhões","periodicidade": "trimestral", "abrangencia": "Brasil" },
+            { "codigo": 24379, "nome": "Pessoas ocupadas (milhões)",                      "descricao": "Total de pessoas ocupadas no mercado de trabalho em milhões.",                                  "unidade": "milhões","periodicidade": "trimestral", "abrangencia": "Brasil" },
+            { "codigo": 24380, "nome": "Pessoas desocupadas (milhões)",                   "descricao": "Total de pessoas desempregadas (desocupadas) em milhões.",                                     "unidade": "milhões","periodicidade": "trimestral", "abrangencia": "Brasil" },
+            { "codigo": 24370, "nome": "Pessoas em idade para trabalhar - PIA (milhões)", "descricao": "Total de pessoas em idade ativa (14 anos ou mais) em milhões.",                               "unidade": "milhões","periodicidade": "trimestral", "abrangencia": "Brasil" },
+            { "codigo": 24381, "nome": "Rendimento médio real efetivo (deflacionado)",    "descricao": "Rendimento médio real de todos os trabalhos, deflacionado pelo IPCA.",                        "unidade": "R$",     "periodicidade": "trimestral", "abrangencia": "Brasil" },
+            { "codigo": 24382, "nome": "Rendimento médio nominal",                        "descricao": "Rendimento médio nominal de todos os trabalhos.",                                              "unidade": "R$",     "periodicidade": "trimestral", "abrangencia": "Brasil" },
+            { "codigo": 28543, "nome": "Pessoal ocupado com rendimento",                  "descricao": "Total de pessoas ocupadas com rendimento (milhões).",                                         "unidade": "milhões","periodicidade": "trimestral", "abrangencia": "Brasil" },
+            { "codigo": 28544, "nome": "Massa salarial real",                             "descricao": "Massa de rendimentos reais de todos os trabalhos (R$ bilhões).",                              "unidade": "R$ bi",  "periodicidade": "trimestral", "abrangencia": "Brasil" }
+          ]
+        },
+
+        "desemprego_por_regiao": {
+          "label": "Taxa de Desocupação por Grande Região",
+          "descricao": "Taxa de desemprego (PNAD Contínua) desagregada por grande região brasileira.",
+          "series": [
+            { "codigo": 28562, "nome": "Taxa de desocupação - Região Norte",          "descricao": "Taxa de desemprego na Região Norte do Brasil (AC, AM, RR, PA, AP, TO, RO).",                   "unidade": "%", "periodicidade": "trimestral", "abrangencia": "Região Norte" },
+            { "codigo": 28563, "nome": "Taxa de desocupação - Região Centro-Oeste",   "descricao": "Taxa de desemprego na Região Centro-Oeste (MT, MS, GO, DF).",                                   "unidade": "%", "periodicidade": "trimestral", "abrangencia": "Região Centro-Oeste" },
+            { "codigo": 28564, "nome": "Taxa de desocupação - Região Nordeste",       "descricao": "Taxa de desemprego na Região Nordeste (MA, PI, CE, RN, PB, PE, AL, SE, BA).",                   "unidade": "%", "periodicidade": "trimestral", "abrangencia": "Região Nordeste" },
+            { "codigo": 28565, "nome": "Taxa de desocupação - Região Sudeste",        "descricao": "Taxa de desemprego na Região Sudeste (SP, RJ, MG, ES).",                                         "unidade": "%", "periodicidade": "trimestral", "abrangencia": "Região Sudeste" },
+            { "codigo": 28566, "nome": "Taxa de desocupação - Região Sul",            "descricao": "Taxa de desemprego na Região Sul (PR, SC, RS).",                                                  "unidade": "%", "periodicidade": "trimestral", "abrangencia": "Região Sul" }
+          ]
+        },
+
+        "emprego_formal_caged": {
+          "label": "Emprego Formal - Nível (CAGED/MTE)",
+          "series": [
+            { "codigo": 25239, "nome": "Emprego formal - Índice total",                  "descricao": "Índice do nível de emprego formal no Brasil (CAGED - MTE), total.",                         "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 25241, "nome": "Emprego formal - Indústria de transformação",    "descricao": "Índice de emprego formal na indústria de transformação.",                                   "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 25255, "nome": "Emprego formal - Construção civil",              "descricao": "Índice de emprego formal na construção civil.",                                              "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 25256, "nome": "Emprego formal - Comércio",                      "descricao": "Índice de emprego formal no comércio.",                                                      "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 25257, "nome": "Emprego formal - Serviços",                      "descricao": "Índice de emprego formal nos serviços.",                                                     "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28512, "nome": "Emprego formal - Total (dessazonalizado)",       "descricao": "Índice do nível de emprego formal total com ajuste sazonal.",                               "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28513, "nome": "Emprego formal - Transformação (dessaz.)",       "descricao": "Índice de emprego formal na indústria de transformação, ajustado sazonalmente.",           "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28514, "nome": "Emprego formal - Comércio (dessaz.)",            "descricao": "Índice de emprego formal no comércio, ajustado sazonalmente.",                             "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28515, "nome": "Emprego formal - Serviços (dessaz.)",            "descricao": "Índice de emprego formal nos serviços, ajustado sazonalmente.",                            "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28516, "nome": "Emprego formal - Construção civil (dessaz.)",    "descricao": "Índice de emprego formal na construção civil, ajustado sazonalmente.",                     "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        },
+
+        "industria_trabalho": {
+          "label": "Trabalho na Indústria",
+          "series": [
+            { "codigo": 24348, "nome": "Horas trabalhadas - Indústria de transformação",     "descricao": "Horas trabalhadas na produção da indústria de transformação (índice).",               "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28558, "nome": "Salário real - Indústria de transformação",          "descricao": "Salário real médio na indústria de transformação (índice deflacionado).",            "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 24349, "nome": "Massa salarial real - Indústria de transformação",   "descricao": "Massa salarial real na indústria de transformação.",                                  "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28559, "nome": "Salário real - Transformação (dessaz.)",             "descricao": "Salário real na indústria de transformação, ajuste sazonal.",                        "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28560, "nome": "Massa salarial real - Transformação (dessaz.)",      "descricao": "Massa salarial real na indústria de transformação, ajuste sazonal.",                 "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        }
+      }
+    },
+
+    "setor_externo": {
+      "label": "Setor Externo e Balança de Pagamentos",
+      "descricao": "Reservas internacionais, balança comercial, transações correntes e investimentos",
+      "subcategorias": {
+
+        "reservas": {
+          "label": "Reservas Internacionais",
+          "series": [
+            { "codigo": 13621, "nome": "Reservas internacionais - Conceito liquidez (US$ mi)", "descricao": "Reservas internacionais do Brasil, conceito de liquidez, em US$ milhões.",        "unidade": "US$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        },
+
+        "balanco_pagamentos": {
+          "label": "Balanço de Pagamentos",
+          "series": [
+            { "codigo": 22707, "nome": "Transações correntes - Saldo (US$ mi)",          "descricao": "Saldo das transações correntes do Brasil (balança comercial + serviços + rendas + transferências).", "unidade": "US$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 22706, "nome": "Balança comercial - Saldo (US$ mi)",             "descricao": "Saldo da balança comercial (exportações - importações de bens).",                                     "unidade": "US$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 22884, "nome": "Investimento direto no país - IDP (US$ mi)",     "descricao": "Fluxo de Investimento Direto Estrangeiro recebido pelo Brasil (IDP).",                               "unidade": "US$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 22883, "nome": "Investimento direto no exterior - IDE (US$ mi)", "descricao": "Fluxo de Investimento Direto Brasileiro no exterior.",                                               "unidade": "US$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        }
+      }
+    },
+
+    "expectativas_confianca": {
+      "label": "Expectativas e Confiança",
+      "descricao": "Índices de confiança do consumidor, do empresário, e capacidade instalada",
+      "subcategorias": {
+
+        "consumidor": {
+          "label": "Confiança do Consumidor",
+          "series": [
+            { "codigo": 4393, "nome": "ICC - Índice de Confiança do Consumidor - Geral",                "descricao": "Índice de Confiança do Consumidor da FGV - resultado geral.",                              "unidade": "pontos", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 4394, "nome": "ICC - Expectativas futuras",                                     "descricao": "Componente do ICC que mede as expectativas futuras dos consumidores.",                     "unidade": "pontos", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 4395, "nome": "ICC - Condições econômicas atuais",                              "descricao": "Componente do ICC que mede as condições econômicas presentes.",                           "unidade": "pontos", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        },
+
+        "empresario": {
+          "label": "Confiança do Empresário Industrial",
+          "series": [
+            { "codigo": 7341, "nome": "ICEI - Índice de Confiança do Empresário Industrial - Geral",    "descricao": "Índice de Confiança do Empresário Industrial da CNI - resultado geral.",                  "unidade": "pontos", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 7342, "nome": "ICEI - Condições atuais",                                        "descricao": "Componente do ICEI referente às condições industriais atuais.",                          "unidade": "pontos", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 7343, "nome": "ICEI - Expectativas",                                            "descricao": "Componente do ICEI referente às expectativas futuras do empresário.",                    "unidade": "pontos", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        },
+
+        "capacidade_instalada": {
+          "label": "Utilização da Capacidade Instalada (UCI)",
+          "series": [
+            { "codigo": 24352, "nome": "UCI - FGV (Nuci)",      "descricao": "Nível de utilização da capacidade instalada da indústria de transformação - FGV.",   "unidade": "%", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 24351, "nome": "UCI - CNI",             "descricao": "Nível de utilização da capacidade instalada da indústria - CNI.",                    "unidade": "%", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28553, "nome": "UCI FGV - dessaz.",     "descricao": "UCI FGV com ajuste sazonal.",                                                        "unidade": "%", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28554, "nome": "UCI CNI - dessaz.",     "descricao": "UCI CNI com ajuste sazonal.",                                                        "unidade": "%", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        }
+      }
+    },
+
+    "financas_publicas": {
+      "label": "Finanças Públicas e Dívida",
+      "descricao": "Resultado fiscal, dívida pública e indicadores das contas do governo",
+      "subcategorias": {
+
+        "resultado_fiscal": {
+          "label": "Resultado Fiscal",
+          "series": [
+            { "codigo": 4382,  "nome": "PIB acumulado 12 meses (correntes)",                   "descricao": "PIB acumulado nos últimos 12 meses a preços correntes - referência para % do PIB.",           "unidade": "R$ mi", "periodicidade": "mensal",  "abrangencia": "Brasil" },
+            { "codigo": 5793,  "nome": "Dívida Líquida do Setor Público - DLSP (% do PIB)",    "descricao": "Dívida Líquida do Setor Público como percentual do PIB.",                                      "unidade": "% PIB", "periodicidade": "mensal",  "abrangencia": "Brasil" },
+            { "codigo": 13762, "nome": "Dívida Bruta do Governo Geral - DBGG (% do PIB)",      "descricao": "Dívida Bruta do Governo Geral como percentual do PIB (conceito utilizado no FMI).",           "unidade": "% PIB", "periodicidade": "mensal",  "abrangencia": "Brasil" },
+            { "codigo": 4168,  "nome": "Resultado primário do Governo Central (R$ mi)",         "descricao": "Resultado primário do Governo Central (Tesouro + Previdência + BCB).",                        "unidade": "R$ mi", "periodicidade": "mensal",  "abrangencia": "Brasil" },
+            { "codigo": 5523,  "nome": "Resultado primário do Setor Público Consolidado",       "descricao": "Resultado primário do setor público consolidado (governo + estatais).",                       "unidade": "R$ mi", "periodicidade": "mensal",  "abrangencia": "Brasil" },
+            { "codigo": 4189,  "nome": "Selic overnight - Custo da dívida (referência)",        "descricao": "Taxa Selic overnight utilizada como referência de custo da dívida pública.",                 "unidade": "% a.a.", "periodicidade": "diária",  "abrangencia": "Brasil" }
+          ]
+        },
+
+        "titulos_publicos": {
+          "label": "Títulos Públicos Federais",
+          "series": [
+            { "codigo": 1788, "nome": "Base monetária (M0)",  "descricao": "Base monetária total - papel-moeda emitido mais reservas bancárias no BCB.",      "unidade": "R$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        }
+      }
+    },
+
+    "indicadores_historia": {
+      "label": "Indicadores Históricos e Especiais",
+      "descricao": "Séries de longa duração e indicadores especiais",
+      "subcategorias": {
+
+        "historicos": {
+          "label": "Séries Históricas",
+          "series": [
+            { "codigo": 13,  "nome": "URV - Unidade Real de Valor",  "descricao": "Cotação da URV em Cruzeiros Reais, utilizada durante o Plano Real (1994).", "unidade": "CR$/URV", "periodicidade": "diária",  "abrangencia": "Brasil" },
+            { "codigo": 3692,"nome": "Taxa câmbio livre anual (desde 1899)", "descricao": "Série histórica do câmbio livre dólar/real (ou cruzeiro) desde 1899.", "unidade": "R$/USD",  "periodicidade": "anual",   "abrangencia": "Brasil" }
+          ]
+        },
+
+        "investimento": {
+          "label": "Investimentos",
+          "series": [
+            { "codigo": 28567, "nome": "Exportação de bens de capital",           "descricao": "Exportações brasileiras de bens de capital (US$ milhões).",                    "unidade": "US$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28568, "nome": "Importação de bens de capital",           "descricao": "Importações brasileiras de bens de capital (US$ milhões).",                    "unidade": "US$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28569, "nome": "Exportação de bens de capital (dessaz.)", "descricao": "Exportações de bens de capital com ajuste sazonal.",                          "unidade": "US$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 28570, "nome": "Importação de bens de capital (dessaz.)", "descricao": "Importações de bens de capital com ajuste sazonal.",                          "unidade": "US$ mi", "periodicidade": "mensal", "abrangencia": "Brasil" },
+            { "codigo": 7358,  "nome": "Faturamento real - BK mecânicos",         "descricao": "Faturamento real dos produtos de bens de capital mecânicos (Abimaq).",        "unidade": "índice", "periodicidade": "mensal", "abrangencia": "Brasil" }
+          ]
+        }
+      }
+    }
+  },
+
+  "referencia_rapida": {
+    "descricao": "Índice de séries mais consultadas para acesso rápido",
+    "mais_usadas": [
+      { "codigo": 433,   "nome": "IPCA mensal",              "categoria": "inflacao_precos.ipca_geral" },
+      { "codigo": 11,    "nome": "Selic diária",             "categoria": "taxas_de_juros.selic" },
+      { "codigo": 432,   "nome": "Selic meta",               "categoria": "taxas_de_juros.selic" },
+      { "codigo": 12,    "nome": "CDI diária",               "categoria": "taxas_de_juros.cdi" },
+      { "codigo": 1,     "nome": "Dólar (venda) diário",     "categoria": "cambio.dolar" },
+      { "codigo": 3697,  "nome": "Dólar PTAX (venda)",       "categoria": "cambio.dolar" },
+      { "codigo": 189,   "nome": "IGP-M",                    "categoria": "inflacao_precos.igp" },
+      { "codigo": 226,   "nome": "TR",                       "categoria": "taxas_de_juros.referencias" },
+      { "codigo": 196,   "nome": "Poupança - rentabilidade", "categoria": "taxas_de_juros.poupanca" },
+      { "codigo": 7,     "nome": "Ibovespa",                 "categoria": "mercado_financeiro.bolsa" },
+      { "codigo": 4390,  "nome": "Selic acumulada no mês",   "categoria": "taxas_de_juros.selic" },
+      { "codigo": 4392,  "nome": "CDI overnight",            "categoria": "taxas_de_juros.cdi" },
+      { "codigo": 1207,  "nome": "PIB anual",                "categoria": "atividade_economica.pib" },
+      { "codigo": 22099, "nome": "PIB trimestral",           "categoria": "atividade_economica.pib" },
+      { "codigo": 24369, "nome": "Taxa de desemprego",       "categoria": "emprego_e_renda.mercado_trabalho_pnad" },
+      { "codigo": 13621, "nome": "Reservas internacionais",  "categoria": "setor_externo.reservas" },
+      { "codigo": 20542, "nome": "Crédito livre - Total",    "categoria": "credito.saldos_credito" },
+      { "codigo": 21082, "nome": "Inadimplência PF",         "categoria": "credito.inadimplencia" },
+      { "codigo": 188,   "nome": "INPC",                     "categoria": "inflacao_precos.inpc" },
+      { "codigo": 7478,  "nome": "IPCA-15",                  "categoria": "inflacao_precos.ipca_geral" }
+    ]
+  }
+}
