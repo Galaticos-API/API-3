@@ -4,43 +4,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { BrazilMap } from "../components/BrazilMap";
 import { regionsData, timeSeriesData, kpiData } from "../data/mockData";
 import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  PieChart,
-  Pie,
-  Cell,
+  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
+  Tooltip, Legend, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
 } from "recharts";
-import { TrendingUp, Users, DollarSign, Target, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { TrendingUp, Users, DollarSign, Target, ArrowUpRight } from "lucide-react";
 import { Badge } from "../components/ui/badge";
 
 export function Dashboard() {
   const [selectedState, setSelectedState] = useState<string | undefined>();
   const [timeFilter, setTimeFilter] = useState("12m");
 
-  // Filtra dados baseado no período
   const filteredTimeData = useMemo(() => {
-    const monthsMap: Record<string, number> = { "3m": 3, "6m": 6, "12m": 12 };
-    const months = monthsMap[timeFilter];
-    return timeSeriesData.slice(-months);
+    const m: Record<string, number> = { "3m": 3, "6m": 6, "12m": 12 };
+    return timeSeriesData.slice(-(m[timeFilter]));
   }, [timeFilter]);
 
-  // Filtra regiões por estado selecionado
   const filteredRegions = useMemo(() => {
     if (!selectedState) return regionsData;
-    return regionsData.filter((r) => r.state === selectedState);
+    return regionsData.filter(r => r.state === selectedState);
   }, [selectedState]);
 
-  // Dados para gráfico de pizza - distribuição por faixa de score
+  const allRegionsSorted = useMemo(() => [...regionsData].sort((a, b) => b.score - a.score), []);
+
   const scoreDistribution = useMemo(() => {
     const ranges = [
       { name: "Excelente (85+)", min: 85, count: 0, color: "#10b981" },
@@ -48,49 +33,54 @@ export function Dashboard() {
       { name: "Médio (65-74)", min: 65, count: 0, color: "#f59e0b" },
       { name: "Baixo (<65)", min: 0, count: 0, color: "#ef4444" },
     ];
-
-    filteredRegions.forEach((region) => {
-      if (region.score >= 85) ranges[0].count++;
-      else if (region.score >= 75) ranges[1].count++;
-      else if (region.score >= 65) ranges[2].count++;
+    filteredRegions.forEach(r => {
+      if (r.score >= 85) ranges[0].count++;
+      else if (r.score >= 75) ranges[1].count++;
+      else if (r.score >= 65) ranges[2].count++;
       else ranges[3].count++;
     });
-
-    return ranges.filter((r) => r.count > 0);
+    return ranges.filter(r => r.count > 0);
   }, [filteredRegions]);
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-      notation: "compact",
-      maximumFractionDigits: 1,
-    }).format(value);
+  const fmtCurrency = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", notation: "compact", maximumFractionDigits: 1 }).format(v);
+  const fmtNumber = (v: number) => new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 }).format(v);
+
+  const grid = { stroke: "rgba(255,255,255,0.05)" };
+  const tick = { fill: "#94a3b8", fontSize: 11 };
+  const ttip = {
+    contentStyle: { backgroundColor: "#111827", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#f1f5f9" },
+    labelStyle: { color: "#94a3b8" },
   };
 
-  const formatNumber = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      notation: "compact",
-      maximumFractionDigits: 1,
-    }).format(value);
+  const selectedRegion = selectedState ? regionsData.find(r => r.state === selectedState) : null;
+
+  const handleStateClick = (uf: string) => {
+    setSelectedState(uf === "" || uf === selectedState ? undefined : uf);
   };
+
+  const detailItems = selectedRegion ? [
+    { label: "Score", value: selectedRegion.score.toFixed(1), cls: "text-blue-400 font-bold" },
+    { label: "Potencial", value: fmtCurrency(selectedRegion.potencialCredito), cls: "text-white font-bold" },
+    { label: "População", value: fmtNumber(selectedRegion.population), cls: "text-slate-200" },
+    { label: "Bancarização", value: `${selectedRegion.bancarizacao}%`, cls: "text-slate-200" },
+    { label: "Inadimplência", value: `${selectedRegion.inadimplencia}%`, cls: selectedRegion.inadimplencia > 5 ? "text-red-400 font-medium" : "text-green-400 font-medium" },
+    { label: "Renda Média", value: fmtCurrency(selectedRegion.rendaMedia), cls: "text-slate-200" },
+  ] : [];
 
   return (
     <div className="space-y-6">
-      {/* Header com filtros */}
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Dashboard de Oportunidades</h2>
-          <p className="text-gray-500 mt-1">Análise territorial de potencial de crédito inclusivo</p>
+          <h2 className="text-3xl font-bold text-white">Dashboard de Oportunidades</h2>
+          <p className="text-slate-400 mt-1">Análise territorial de potencial de crédito inclusivo</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">Período:</label>
+            <label className="text-sm text-slate-400">Período:</label>
             <Select value={timeFilter} onValueChange={setTimeFilter}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
+              <SelectTrigger className="w-32 bg-[#111827] border-white/10 text-white"><SelectValue /></SelectTrigger>
+              <SelectContent className="bg-[#111827] border-white/10 text-white">
                 <SelectItem value="3m">3 meses</SelectItem>
                 <SelectItem value="6m">6 meses</SelectItem>
                 <SelectItem value="12m">12 meses</SelectItem>
@@ -98,23 +88,14 @@ export function Dashboard() {
             </Select>
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">Estado:</label>
-            <Select value={selectedState || "all"} onValueChange={(v) => setSelectedState(v === "all" ? undefined : v)}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
+            <label className="text-sm text-slate-400">Estado:</label>
+            <Select value={selectedState || "all"} onValueChange={v => setSelectedState(v === "all" ? undefined : v)}>
+              <SelectTrigger className="w-36 bg-[#111827] border-white/10 text-white"><SelectValue /></SelectTrigger>
+              <SelectContent className="bg-[#111827] border-white/10 text-white">
                 <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="SP">São Paulo</SelectItem>
-                <SelectItem value="RJ">Rio de Janeiro</SelectItem>
-                <SelectItem value="MG">Minas Gerais</SelectItem>
-                <SelectItem value="BA">Bahia</SelectItem>
-                <SelectItem value="PE">Pernambuco</SelectItem>
-                <SelectItem value="CE">Ceará</SelectItem>
-                <SelectItem value="PR">Paraná</SelectItem>
-                <SelectItem value="RS">Rio Grande do Sul</SelectItem>
-                <SelectItem value="PA">Pará</SelectItem>
-                <SelectItem value="GO">Goiás</SelectItem>
+                {["SP", "RJ", "MG", "BA", "PE", "CE", "PR", "RS", "PA", "GO"].map(s => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -123,260 +104,217 @@ export function Dashboard() {
 
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Potencial Total</CardTitle>
-            <DollarSign className="w-4 h-4 text-gray-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(kpiData.totalPotencial)}</div>
-            <p className="text-xs text-green-600 flex items-center gap-1 mt-1">
-              <ArrowUpRight className="w-3 h-3" />
-              +{kpiData.crescimentoMensal}% vs mês anterior
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Regiões Mapeadas</CardTitle>
-            <Target className="w-4 h-4 text-gray-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{kpiData.regioesMapeadas}</div>
-            <p className="text-xs text-gray-500 mt-1">Territórios analisados</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Ticket Médio</CardTitle>
-            <TrendingUp className="w-4 h-4 text-gray-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(kpiData.ticketMedioNacional)}</div>
-            <p className="text-xs text-green-600 flex items-center gap-1 mt-1">
-              <ArrowUpRight className="w-3 h-3" />
-              +4.2% vs trimestre anterior
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">População Alvo</CardTitle>
-            <Users className="w-4 h-4 text-gray-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatNumber(filteredRegions.reduce((sum, r) => sum + r.population, 0))}</div>
-            <p className="text-xs text-gray-500 mt-1">Habitantes nas regiões</p>
-          </CardContent>
-        </Card>
+        {[
+          { label: "Potencial Total", value: fmtCurrency(kpiData.totalPotencial), sub: `↗ +${kpiData.crescimentoMensal}% vs mês anterior`, icon: <DollarSign className="w-5 h-5 text-white/80" />, grad: "from-green-700 to-green-500" },
+          { label: "Regiões Mapeadas", value: String(kpiData.regioesMapeadas), sub: "Territórios analisados", icon: <Target className="w-5 h-5 text-white/80" />, grad: "from-blue-700 to-blue-400" },
+          { label: "Ticket Médio", value: fmtCurrency(kpiData.ticketMedioNacional), sub: "↗ +4.2% vs trimestre anterior", icon: <TrendingUp className="w-5 h-5 text-white/80" />, grad: "from-purple-700 to-purple-400" },
+          { label: "População Alvo", value: fmtNumber(filteredRegions.reduce((s, r) => s + r.population, 0)), sub: "Habitantes nas regiões", icon: <Users className="w-5 h-5 text-white/80" />, grad: "from-orange-600 to-orange-400" },
+        ].map(k => (
+          <div key={k.label} className={`rounded-2xl p-5 relative overflow-hidden bg-gradient-to-br ${k.grad}`}>
+            <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full bg-white/10" />
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-semibold text-white/90">{k.label}</span>
+              {k.icon}
+            </div>
+            <div className="text-3xl font-bold text-white leading-none mb-1">{k.value}</div>
+            <p className="text-xs text-white/80">{k.sub}</p>
+          </div>
+        ))}
       </div>
 
-      {/* Mapa e Ranking */}
+      {/* Mapa + Ranking */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="bg-[#111827] border-white/5">
           <CardHeader>
-            <CardTitle>Mapa do Brasil</CardTitle>
-            <CardDescription>Score de oportunidade por estado</CardDescription>
+            <CardTitle className="text-white">Mapa do Brasil</CardTitle>
+            <CardDescription className="text-slate-400">Clique em um estado para ver os indicadores</CardDescription>
           </CardHeader>
           <CardContent>
-            <BrazilMap selectedState={selectedState} onStateClick={setSelectedState} />
+            <BrazilMap selectedState={selectedState} onStateClick={handleStateClick} />
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-[#111827] border-white/5">
           <CardHeader>
-            <CardTitle>Ranking Regional</CardTitle>
-            <CardDescription>Top regiões por potencial de crédito</CardDescription>
+            <CardTitle className="text-white">Ranking Regional</CardTitle>
+            <CardDescription className="text-slate-400">Top regiões por potencial de crédito</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3 max-h-[500px] overflow-y-auto">
-              {filteredRegions
-                .sort((a, b) => b.score - a.score)
-                .map((region, index) => (
-                  <div key={region.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                        index === 0
-                          ? "bg-yellow-100 text-yellow-700"
-                          : index === 1
-                          ? "bg-gray-100 text-gray-700"
-                          : index === 2
-                          ? "bg-orange-100 text-orange-700"
-                          : "bg-blue-50 text-blue-700"
-                      }`}
-                    >
+            <div className="flex gap-0" style={{ minHeight: 340 }}>
+              {/* Ranking — metade esquerda */}
+              <div className="w-1/2 space-y-1 overflow-y-auto pr-2" style={{ maxHeight: 340 }}>
+                {allRegionsSorted.map((region, index) => (
+                  <div key={region.id}
+                    onClick={() => handleStateClick(region.state)}
+                    className={`flex items-center gap-2 p-2.5 rounded-xl cursor-pointer transition-colors border-b border-white/5 last:border-0 ${selectedState === region.state ? "bg-blue-500/15" : "hover:bg-white/5"}`}
+                  >
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] text-white flex-shrink-0 ${index === 0 ? "bg-orange-500" : index === 1 ? "bg-slate-500" : index === 2 ? "bg-amber-800" : "bg-blue-900"}`}>
                       {index + 1}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-gray-900 truncate">{region.name}</p>
-                        <Badge variant="outline" className="text-xs">
-                          {region.state}
-                        </Badge>
+                      <div className="flex items-center gap-1">
+                        <p className="font-semibold text-white text-[11px] truncate">{region.name}</p>
+                        <Badge className="text-[9px] px-1 py-0 bg-blue-900/50 text-blue-300 border border-blue-500/30 hover:bg-blue-900/50 flex-shrink-0">{region.state}</Badge>
                       </div>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
-                        <span>Pop: {formatNumber(region.population)}</span>
-                        <span>•</span>
-                        <span>Banc: {region.bancarizacao}%</span>
-                        <span>•</span>
-                        <span>Inadimpl: {region.inadimplencia}%</span>
-                      </div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">Inadimp: {region.inadimplencia}%</div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-bold text-lg text-blue-600">{region.score.toFixed(1)}</div>
-                      <p className="text-xs text-gray-500">Score</p>
-                    </div>
+                    <div className="font-bold text-xs text-blue-400 flex-shrink-0">{region.score.toFixed(1)}</div>
                   </div>
                 ))}
+              </div>
+
+              {/* Divisor */}
+              <div className="w-px bg-white/10 mx-3 flex-shrink-0" />
+
+              {/* Detalhe — metade direita */}
+              <div className="w-1/2 pl-1">
+                {selectedRegion ? (
+                  <>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-1.5">
+                        <Badge className="bg-blue-900/50 text-blue-300 border border-blue-500/30 text-xs">{selectedRegion.state}</Badge>
+                        <span className="text-white text-sm font-semibold truncate">{selectedRegion.name}</span>
+                      </div>
+                      <button onClick={() => setSelectedState(undefined)} className="text-slate-500 hover:text-white text-xs transition-colors flex-shrink-0 ml-1">✕</button>
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      {detailItems.map(item => (
+                        <div key={item.label} className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2">
+                          <span className="text-slate-400 text-xs">{item.label}</span>
+                          <span className={`text-sm ${item.cls}`}>{item.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center gap-2 text-center">
+                    <span className="text-3xl">👆</span>
+                    <p className="text-[10px] text-slate-500 leading-relaxed px-2">Clique em uma região para ver os detalhes</p>
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Gráficos de Séries Temporais */}
+      {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="bg-[#111827] border-white/5">
           <CardHeader>
-            <CardTitle>Evolução de Concessões</CardTitle>
-            <CardDescription>Volume de operações ao longo do tempo</CardDescription>
+            <CardTitle className="text-white">Evolução de Concessões</CardTitle>
+            <CardDescription className="text-slate-400">Volume de operações ao longo do tempo</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={240}>
               <AreaChart data={filteredTimeData}>
                 <defs>
-                  <linearGradient id="colorConcessoes" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                  <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
                     <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip />
-                <Area type="monotone" dataKey="concessoes" stroke="#3b82f6" fillOpacity={1} fill="url(#colorConcessoes)" />
+                <CartesianGrid strokeDasharray="3 3" {...grid} />
+                <XAxis dataKey="month" tick={tick} />
+                <YAxis tick={tick} />
+                <Tooltip {...ttip} />
+                <Area type="monotone" dataKey="concessoes" stroke="#3b82f6" strokeWidth={2} fill="url(#cg)" />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-[#111827] border-white/5">
           <CardHeader>
-            <CardTitle>Taxa de Inadimplência</CardTitle>
-            <CardDescription>Evolução do índice de inadimplência (%)</CardDescription>
+            <CardTitle className="text-white">Taxa de Inadimplência</CardTitle>
+            <CardDescription className="text-slate-400">Evolução do índice (%)</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={240}>
               <LineChart data={filteredTimeData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} domain={[0, 6]} />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="inadimplencia" stroke="#ef4444" strokeWidth={2} name="Inadimplência %" />
+                <CartesianGrid strokeDasharray="3 3" {...grid} />
+                <XAxis dataKey="month" tick={tick} />
+                <YAxis tick={tick} domain={[0, 6]} />
+                <Tooltip {...ttip} />
+                <Legend wrapperStyle={{ color: "#94a3b8", fontSize: 12 }} />
+                <Line type="monotone" dataKey="inadimplencia" stroke="#ef4444" strokeWidth={2} dot={{ fill: "#ef4444", r: 3 }} name="Inadimplência %" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Gráficos Adicionais */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="bg-[#111827] border-white/5">
           <CardHeader>
-            <CardTitle>Ticket Médio</CardTitle>
-            <CardDescription>Valor médio das operações (R$)</CardDescription>
+            <CardTitle className="text-white">Ticket Médio</CardTitle>
+            <CardDescription className="text-slate-400">Valor médio das operações (R$)</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={240}>
               <BarChart data={filteredTimeData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip />
-                <Bar dataKey="ticket_medio" fill="#10b981" radius={[8, 8, 0, 0]} />
+                <CartesianGrid strokeDasharray="3 3" {...grid} />
+                <XAxis dataKey="month" tick={tick} />
+                <YAxis tick={tick} />
+                <Tooltip {...ttip} />
+                <Bar dataKey="ticket_medio" fill="#22c55e" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-[#111827] border-white/5">
           <CardHeader>
-            <CardTitle>Distribuição por Score</CardTitle>
-            <CardDescription>Classificação das regiões analisadas</CardDescription>
+            <CardTitle className="text-white">Distribuição por Score</CardTitle>
+            <CardDescription className="text-slate-400">Classificação das regiões analisadas</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={240}>
               <PieChart>
-                <Pie
-                  data={scoreDistribution}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, count }) => `${name}: ${count}`}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="count"
-                >
-                  {scoreDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
+                <Pie data={scoreDistribution} cx="50%" cy="50%" labelLine={false}
+                  label={({ name, count }) => `${name}: ${count}`} outerRadius={90} dataKey="count">
+                  {scoreDistribution.map((e, i) => <Cell key={i} fill={e.color} />)}
                 </Pie>
-                <Tooltip />
+                <Tooltip {...ttip} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
 
-      {/* Tabela de Detalhes */}
-      <Card>
+      {/* Tabela */}
+      <Card className="bg-[#111827] border-white/5">
         <CardHeader>
-          <CardTitle>Detalhamento Regional</CardTitle>
-          <CardDescription>Indicadores completos por região</CardDescription>
+          <CardTitle className="text-white">Detalhamento Regional</CardTitle>
+          <CardDescription className="text-slate-400">Indicadores completos por região</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Região</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">UF</th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Score</th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">População</th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Bancarização</th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Inadimplência</th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Renda Média</th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Potencial</th>
+                <tr className="border-b border-white/5">
+                  {["Região", "UF", "Score", "População", "Bancarização", "Inadimplência", "Renda Média", "Potencial"].map(h => (
+                    <th key={h} className="text-left py-3 px-4 text-xs font-medium text-slate-400">{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {filteredRegions
-                  .sort((a, b) => b.score - a.score)
-                  .map((region) => (
-                    <tr key={region.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4 text-sm text-gray-900">{region.name}</td>
-                      <td className="py-3 px-4">
-                        <Badge variant="outline">{region.state}</Badge>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-right">
-                        <span className="font-semibold text-blue-600">{region.score.toFixed(1)}</span>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-right text-gray-700">{formatNumber(region.population)}</td>
-                      <td className="py-3 px-4 text-sm text-right text-gray-700">{region.bancarizacao}%</td>
-                      <td className="py-3 px-4 text-sm text-right">
-                        <span className={region.inadimplencia < 4 ? "text-green-600" : "text-red-600"}>
-                          {region.inadimplencia}%
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-right text-gray-700">{formatCurrency(region.rendaMedia)}</td>
-                      <td className="py-3 px-4 text-sm text-right font-medium text-gray-900">
-                        {formatCurrency(region.potencialCredito)}
-                      </td>
-                    </tr>
-                  ))}
+                {allRegionsSorted.map(r => (
+                  <tr key={r.id}
+                    onClick={() => handleStateClick(r.state)}
+                    className={`border-b border-white/5 last:border-0 cursor-pointer transition-colors ${selectedState === r.state ? "bg-blue-500/10" : "hover:bg-white/[.03]"}`}>
+                    <td className="py-3 px-4 text-sm text-white font-medium">{r.name}</td>
+                    <td className="py-3 px-4">
+                      <Badge className="text-xs bg-blue-900/50 text-blue-300 border border-blue-500/30 hover:bg-blue-900/50">{r.state}</Badge>
+                    </td>
+                    <td className="py-3 px-4 text-sm font-bold text-blue-400">{r.score.toFixed(1)}</td>
+                    <td className="py-3 px-4 text-sm text-slate-300">{fmtNumber(r.population)}</td>
+                    <td className="py-3 px-4 text-sm text-slate-300">{r.bancarizacao}%</td>
+                    <td className="py-3 px-4 text-sm">
+                      <span className={r.inadimplencia < 4 ? "text-green-400" : "text-red-400"}>{r.inadimplencia}%</span>
+                    </td>
+                    <td className="py-3 px-4 text-sm text-slate-300">{fmtCurrency(r.rendaMedia)}</td>
+                    <td className="py-3 px-4 text-sm font-bold text-white">{fmtCurrency(r.potencialCredito)}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
