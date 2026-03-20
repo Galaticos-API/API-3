@@ -207,3 +207,8 @@ marimo/_lsp/
 __marimo__/
 
 node_modules/
+
+database/credito_inclusivo.db-shm
+database/credito_inclusivo.db-wal
+database/credito_inclusivo.db.bak
+database/credito_inclusivo.db
