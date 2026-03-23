@@ -1,9 +1,4 @@
-const sqlite3 = require('sqlite3').verbose();
-const { rejects } = require('assert');
-const path = require('path');
-
-const dbPath = path.resolve(__dirname, '../../../database/credito_inclusivo.db');
-const db = new sqlite3.Database(dbPath);
+const db = require('../config/database');
 
 const getDadosFiltrados = (filtros) => {
     return new Promise((resolve, reject) => {
