@@ -7,20 +7,22 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { cn } from "../components/ui/utils";
 
-// ── Credenciais de demonstração (substituir por chamada real na Sprint 2) ──
-const DEMO_EMAIL    = "admin@dm.com.br";
+// 1. Importação da função real do seu backend
+import { fazerLogin } from "../../services/auth";
+
+const DEMO_EMAIL = "admin@dm.com.br";
 const DEMO_PASSWORD = "dm@2026";
-const TOKEN_KEY     = "dm_token";
+const TOKEN_KEY = "dm_token";
 
 interface FormState {
-  email:    string;
+  email: string;
   password: string;
 }
 
 interface FormErrors {
-  email?:    string;
+  email?: string;
   password?: string;
-  general?:  string;
+  general?: string;
 }
 
 function validateForm(values: FormState): FormErrors {
@@ -41,25 +43,12 @@ function validateForm(values: FormState): FormErrors {
   return errors;
 }
 
-// ── Simulação de chamada ao backend (substituir por fetch real) ──────────────
-function fakeAuthRequest(email: string, password: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (email === DEMO_EMAIL && password === DEMO_PASSWORD) {
-        resolve("dm_fake_jwt_token_sprint1");
-      } else {
-        reject(new Error("E-mail ou senha inválidos."));
-      }
-    }, 1500);
-  });
-}
-
 // ── Feature cards do painel esquerdo ─────────────────────────────────────────
 const features = [
-  { icon: MapPin,    title: "Mapa de Oportunidades", desc: "Identifique territórios com potencial de expansão de crédito." },
-  { icon: TrendingUp,title: "Análise Monte Carlo",   desc: "Simule cenários de risco e projete inadimplência futura." },
-  { icon: Brain,     title: "Assistente de IA",      desc: "Obtenha insights em linguagem natural sobre qualquer região." },
-  { icon: Shield,    title: "Dados do Banco Central", desc: "Indicadores reais de concessão, endividamento e risco regional." },
+  { icon: MapPin, title: "Mapa de Oportunidades", desc: "Identifique territórios com potencial de expansão de crédito." },
+  { icon: TrendingUp, title: "Análise Monte Carlo", desc: "Simule cenários de risco e projete inadimplência futura." },
+  { icon: Brain, title: "Assistente de IA", desc: "Obtenha insights em linguagem natural sobre qualquer região." },
+  { icon: Shield, title: "Dados do Banco Central", desc: "Indicadores reais de concessão, endividamento e risco regional." },
 ];
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -68,8 +57,8 @@ const features = [
 export function Login() {
   const navigate = useNavigate();
 
-  const [form, setForm]       = useState<FormState>({ email: "", password: "" });
-  const [errors, setErrors]   = useState<FormErrors>({});
+  const [form, setForm] = useState<FormState>({ email: "", password: "" });
+  const [errors, setErrors] = useState<FormErrors>({});
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -80,6 +69,7 @@ export function Login() {
     if (errors.general) setErrors((prev) => ({ ...prev, general: undefined }));
   }
 
+  // 2. Função de submit atualizada conectada ao Node.js
   async function handleSubmit() {
     const validation = validateForm(form);
     if (Object.keys(validation).length > 0) {
@@ -91,11 +81,16 @@ export function Login() {
     setErrors({});
 
     try {
-      const token = await fakeAuthRequest(form.email, form.password);
-      sessionStorage.setItem(TOKEN_KEY, token);
-      navigate("/", { replace: true });
+      const resultado = await fazerLogin(form.email, form.password);
+
+      if (resultado.status === 200) {
+        sessionStorage.setItem(TOKEN_KEY, resultado.data.token);
+        navigate("/", { replace: true });
+      } else {
+        setErrors({ general: resultado.data.erro || "E-mail ou senha inválidos." });
+      }
     } catch (err) {
-      setErrors({ general: (err as Error).message });
+      setErrors({ general: "Erro de conexão com o servidor. O backend está rodando?" });
     } finally {
       setLoading(false);
     }
@@ -263,7 +258,7 @@ export function Login() {
 
               {/* Hint de credenciais demo */}
               <div className="rounded-lg bg-muted px-4 py-3 text-xs text-muted-foreground space-y-1">
-                <p className="font-semibold text-foreground/80">Credenciais de demonstração:</p>
+                <p className="font-semibold text-foreground/80">Crie este usuário no Thunder Client para testar:</p>
                 <p><span className="font-medium">E-mail:</span> {DEMO_EMAIL}</p>
                 <p><span className="font-medium">Senha:</span> {DEMO_PASSWORD}</p>
               </div>
