@@ -4,11 +4,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { BrazilMap } from "../components/BrazilMap";
 import { regionsData, timeSeriesData, kpiData } from "../data/mockData";
 import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
+  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, AreaChart, Area, PieChart, Pie, Cell,
 } from "recharts";
-import { TrendingUp, Users, DollarSign, Target, ArrowUpRight } from "lucide-react";
+import { TrendingUp, Users, DollarSign, Target } from "lucide-react";
 import { Badge } from "../components/ui/badge";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "../components/ui/chart";
 
 export function Dashboard() {
   const [selectedState, setSelectedState] = useState<string | undefined>();
@@ -44,13 +44,6 @@ export function Dashboard() {
 
   const fmtCurrency = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", notation: "compact", maximumFractionDigits: 1 }).format(v);
   const fmtNumber = (v: number) => new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 }).format(v);
-
-  const grid = { stroke: "rgba(255,255,255,0.05)" };
-  const tick = { fill: "#94a3b8", fontSize: 11 };
-  const ttip = {
-    contentStyle: { backgroundColor: "#111827", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#f1f5f9" },
-    labelStyle: { color: "#94a3b8" },
-  };
 
   const selectedRegion = selectedState ? regionsData.find(r => r.state === selectedState) : null;
 
@@ -206,21 +199,24 @@ export function Dashboard() {
             <CardDescription className="text-slate-400">Volume de operações ao longo do tempo</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={240}>
-              <AreaChart data={filteredTimeData}>
+            <ChartContainer 
+              config={{ concessoes: { label: "Concessões", color: "#3b82f6" } }} 
+              className="h-[240px] w-full"
+            >
+              <AreaChart data={filteredTimeData} margin={{ left: -20, right: 10, top: 10, bottom: 0 }}>
                 <defs>
                   <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                    <stop offset="5%" stopColor="var(--color-concessoes)" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="var(--color-concessoes)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" {...grid} />
-                <XAxis dataKey="month" tick={tick} />
-                <YAxis tick={tick} />
-                <Tooltip {...ttip} />
-                <Area type="monotone" dataKey="concessoes" stroke="#3b82f6" strokeWidth={2} fill="url(#cg)" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                <YAxis tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Area type="monotone" dataKey="concessoes" stroke="var(--color-concessoes)" strokeWidth={2} fill="url(#cg)" />
               </AreaChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </CardContent>
         </Card>
 
@@ -230,16 +226,19 @@ export function Dashboard() {
             <CardDescription className="text-slate-400">Evolução do índice (%)</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={240}>
-              <LineChart data={filteredTimeData}>
-                <CartesianGrid strokeDasharray="3 3" {...grid} />
-                <XAxis dataKey="month" tick={tick} />
-                <YAxis tick={tick} domain={[0, 6]} />
-                <Tooltip {...ttip} />
-                <Legend wrapperStyle={{ color: "#94a3b8", fontSize: 12 }} />
-                <Line type="monotone" dataKey="inadimplencia" stroke="#ef4444" strokeWidth={2} dot={{ fill: "#ef4444", r: 3 }} name="Inadimplência %" />
+            <ChartContainer 
+              config={{ inadimplencia: { label: "Inadimplência", color: "#ef4444" } }} 
+              className="h-[240px] w-full"
+            >
+              <LineChart data={filteredTimeData} margin={{ left: -20, right: 10, top: 10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                <YAxis domain={[0, 6]} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <ChartLegend content={<ChartLegendContent />} />
+                <Line type="monotone" dataKey="inadimplencia" stroke="var(--color-inadimplencia)" strokeWidth={2} dot={{ fill: "var(--color-inadimplencia)", r: 3 }} />
               </LineChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </CardContent>
         </Card>
 
@@ -249,15 +248,18 @@ export function Dashboard() {
             <CardDescription className="text-slate-400">Valor médio das operações (R$)</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={filteredTimeData}>
-                <CartesianGrid strokeDasharray="3 3" {...grid} />
-                <XAxis dataKey="month" tick={tick} />
-                <YAxis tick={tick} />
-                <Tooltip {...ttip} />
-                <Bar dataKey="ticket_medio" fill="#22c55e" radius={[6, 6, 0, 0]} />
+            <ChartContainer 
+              config={{ ticket_medio: { label: "Ticket Médio", color: "#22c55e" } }} 
+              className="h-[240px] w-full"
+            >
+              <BarChart data={filteredTimeData} margin={{ left: -20, right: 10, top: 10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                <YAxis tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="ticket_medio" fill="var(--color-ticket_medio)" radius={[4, 4, 0, 0]} />
               </BarChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </CardContent>
         </Card>
 
@@ -267,15 +269,29 @@ export function Dashboard() {
             <CardDescription className="text-slate-400">Classificação das regiões analisadas</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={240}>
+            <ChartContainer 
+              config={{
+                excelente: { label: "Excelente", color: "#10b981" },
+                bom: { label: "Bom", color: "#3b82f6" },
+                medio: { label: "Médio", color: "#f59e0b" },
+                baixo: { label: "Baixo", color: "#ef4444" },
+              }} 
+              className="h-[240px] w-full"
+            >
               <PieChart>
-                <Pie data={scoreDistribution} cx="50%" cy="50%" labelLine={false}
-                  label={({ name, count }) => `${name}: ${count}`} outerRadius={90} dataKey="count">
+                <Pie 
+                  data={scoreDistribution} 
+                  cx="50%" cy="50%" 
+                  labelLine={false}
+                  label={({ name, count }) => `${name}: ${count}`} 
+                  outerRadius={85} 
+                  dataKey="count"
+                >
                   {scoreDistribution.map((e, i) => <Cell key={i} fill={e.color} />)}
                 </Pie>
-                <Tooltip {...ttip} />
+                <ChartTooltip content={<ChartTooltipContent />} />
               </PieChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </CardContent>
         </Card>
       </div>
