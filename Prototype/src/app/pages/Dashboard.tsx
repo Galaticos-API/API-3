@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { BrazilMap } from "../components/BrazilMap";
-import { regionsData, timeSeriesData, kpiData } from "../data/mockData";
+import { regionsData, timeSeriesData } from "../data/mockData";
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, AreaChart, Area, PieChart, Pie, Cell,
 } from "recharts";
@@ -28,20 +28,50 @@ export function Dashboard() {
     to: new Date(2026, 2, 31),
   });
 
-  const handleClearFilters = () => {
-    setDate(undefined);
-    setSelectedState(undefined);
+  const parseMonthYear = (str: string) => {
+    const months: Record<string, number> = { Jan: 0, Fev: 1, Mar: 2, Abr: 3, Mai: 4, Jun: 5, Jul: 6, Ago: 7, Set: 8, Out: 9, Nov: 10, Dez: 11 };
+    const [m, y] = str.split("/");
+    return new Date(2000 + parseInt(y), months[m], 1);
   };
 
   const filteredTimeData = useMemo(() => {
-    const m: Record<string, number> = { "3m": 3, "6m": 6, "12m": 12 };
-    return timeSeriesData.slice(-(m[date?.to ? "12m" : date?.from ? "6m" : "3m"] || 3));
-  }, [date]);
+    let data = timeSeriesData.filter(d => d.state === (selectedState || "all"));
+
+    if (date?.from) {
+      data = data.filter(d => {
+        const itemDate = parseMonthYear(d.month);
+        const isAfterStart = itemDate >= date.from!;
+        const isBeforeEnd = date.to ? itemDate <= date.to : true;
+        return isAfterStart && isBeforeEnd;
+      });
+    }
+    return data;
+  }, [date, selectedState]);
 
   const filteredRegions = useMemo(() => {
     if (!selectedState) return regionsData;
     return regionsData.filter(r => r.state === selectedState);
   }, [selectedState]);
+
+  const dynamicKPIs = useMemo(() => {
+    const totalPotencial = filteredRegions.reduce((sum, r) => sum + r.potencialCredito, 0);
+    const avgTicket = filteredTimeData.length 
+      ? filteredTimeData.reduce((sum, t) => sum + t.ticket_medio, 0) / filteredTimeData.length 
+      : 0;
+    const popAlvo = filteredRegions.reduce((sum, r) => sum + r.population, 0);
+
+    return { 
+      totalPotencial, 
+      regioesMapeadas: filteredRegions.length, 
+      ticketMedioNacional: avgTicket, 
+      popAlvo 
+    };
+  }, [filteredRegions, filteredTimeData]);
+
+  const handleClearFilters = () => {
+    setDate(undefined);
+    setSelectedState(undefined);
+  };
 
   const allRegionsSorted = useMemo(() => [...regionsData].sort((a, b) => b.score - a.score), []);
 
@@ -94,28 +124,30 @@ export function Dashboard() {
             <label className="text-sm font-medium text-slate-400">Período:</label>
             <Popover>
               <PopoverTrigger asChild>
-                <Button
-                  id="date"
-                  variant={"outline"}
-                  className={cn(
-                    "w-[260px] justify-start text-left font-normal bg-[#111827] border-white/10 text-white hover:bg-white/5 hover:text-white",
-                    !date && "text-slate-400"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date?.from ? (
-                    date.to ? (
-                      <>
-                        {format(date.from, "dd LLL, y", { locale: ptBR })} -{" "}
-                        {format(date.to, "dd LLL, y", { locale: ptBR })}
-                      </>
+                <div>
+                  <Button
+                    id="date"
+                    variant={"outline"}
+                    className={cn(
+                      "w-[260px] justify-start text-left font-normal bg-[#111827] border-white/10 text-white hover:bg-white/5 hover:text-white",
+                      !date && "text-slate-400"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date?.from ? (
+                      date.to ? (
+                        <>
+                          {format(date.from, "dd LLL, y", { locale: ptBR })} -{" "}
+                          {format(date.to, "dd LLL, y", { locale: ptBR })}
+                        </>
+                      ) : (
+                        format(date.from, "dd LLL, y", { locale: ptBR })
+                      )
                     ) : (
-                      format(date.from, "dd LLL, y", { locale: ptBR })
-                    )
-                  ) : (
-                    <span>Selecione um período</span>
-                  )}
-                </Button>
+                      <span>Selecione um período</span>
+                    )}
+                  </Button>
+                </div>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 bg-[#111827] border-white/10 text-white" align="end">
                 <Calendar
@@ -164,10 +196,10 @@ export function Dashboard() {
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: "Potencial Total", value: fmtCurrency(kpiData.totalPotencial), sub: `↗ +${kpiData.crescimentoMensal}% vs mês anterior`, icon: <DollarSign className="w-5 h-5 text-white/80" />, grad: "from-green-700 to-green-500" },
-          { label: "Regiões Mapeadas", value: String(kpiData.regioesMapeadas), sub: "Territórios analisados", icon: <Target className="w-5 h-5 text-white/80" />, grad: "from-blue-700 to-blue-400" },
-          { label: "Ticket Médio", value: fmtCurrency(kpiData.ticketMedioNacional), sub: "↗ +4.2% vs trimestre anterior", icon: <TrendingUp className="w-5 h-5 text-white/80" />, grad: "from-purple-700 to-purple-400" },
-          { label: "População Alvo", value: fmtNumber(filteredRegions.reduce((s, r) => s + r.population, 0)), sub: "Habitantes nas regiões", icon: <Users className="w-5 h-5 text-white/80" />, grad: "from-orange-600 to-orange-400" },
+          { label: "Potencial Total", value: fmtCurrency(dynamicKPIs.totalPotencial), sub: "Com base no filtro atual", icon: <DollarSign className="w-5 h-5 text-white/80" />, grad: "from-green-700 to-green-500" },
+          { label: "Regiões Mapeadas", value: String(dynamicKPIs.regioesMapeadas), sub: "Territórios em exibição", icon: <Target className="w-5 h-5 text-white/80" />, grad: "from-blue-700 to-blue-400" },
+          { label: "Ticket Médio", value: fmtCurrency(dynamicKPIs.ticketMedioNacional), sub: "Média do período", icon: <TrendingUp className="w-5 h-5 text-white/80" />, grad: "from-purple-700 to-purple-400" },
+          { label: "População Alvo", value: fmtNumber(dynamicKPIs.popAlvo), sub: "Habitantes nas regiões", icon: <Users className="w-5 h-5 text-white/80" />, grad: "from-orange-600 to-orange-400" },
         ].map(k => (
           <div key={k.label} className={`rounded-2xl p-5 relative overflow-hidden bg-gradient-to-br ${k.grad}`}>
             <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full bg-white/10" />

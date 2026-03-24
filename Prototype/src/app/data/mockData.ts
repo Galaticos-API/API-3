@@ -18,6 +18,7 @@ export interface TimeSeriesData {
   concessoes: number;
   inadimplencia: number;
   ticket_medio: number;
+  state: string; // Adicionado identificador de estado
 }
 
 export const regionsData: RegionData[] = [
@@ -143,22 +144,25 @@ export const regionsData: RegionData[] = [
   },
 ];
 
+const baseMonths = ["Jan/25", "Fev/25", "Mar/25", "Abr/25", "Mai/25", "Jun/25", "Jul/25", "Ago/25", "Set/25", "Out/25", "Nov/25", "Dez/25", "Jan/26", "Fev/26", "Mar/26"];
+
 export const timeSeriesData: TimeSeriesData[] = [
-  { month: "Jan/25", concessoes: 18500, inadimplencia: 3.8, ticket_medio: 2850 },
-  { month: "Fev/25", concessoes: 19200, inadimplencia: 3.9, ticket_medio: 2920 },
-  { month: "Mar/25", concessoes: 21800, inadimplencia: 3.7, ticket_medio: 3050 },
-  { month: "Abr/25", concessoes: 20500, inadimplencia: 4.1, ticket_medio: 2980 },
-  { month: "Mai/25", concessoes: 22300, inadimplencia: 4.0, ticket_medio: 3120 },
-  { month: "Jun/25", concessoes: 23800, inadimplencia: 3.8, ticket_medio: 3180 },
-  { month: "Jul/25", concessoes: 25100, inadimplencia: 3.6, ticket_medio: 3250 },
-  { month: "Ago/25", concessoes: 24600, inadimplencia: 3.7, ticket_medio: 3210 },
-  { month: "Set/25", concessoes: 26200, inadimplencia: 3.5, ticket_medio: 3290 },
-  { month: "Out/25", concessoes: 27500, inadimplencia: 3.4, ticket_medio: 3350 },
-  { month: "Nov/25", concessoes: 28300, inadimplencia: 3.3, ticket_medio: 3420 },
-  { month: "Dez/25", concessoes: 29800, inadimplencia: 3.2, ticket_medio: 3480 },
-  { month: "Jan/26", concessoes: 30500, inadimplencia: 3.2, ticket_medio: 3520 },
-  { month: "Fev/26", concessoes: 31200, inadimplencia: 3.1, ticket_medio: 3580 },
-  { month: "Mar/26", concessoes: 32800, inadimplencia: 3.0, ticket_medio: 3650 },
+  ...baseMonths.map((m, i) => ({
+    month: m,
+    state: "all",
+    concessoes: 18500 + (i * 800),
+    inadimplencia: 3.8 - (i * 0.05),
+    ticket_medio: 2850 + (i * 50)
+  })),
+  ...regionsData.flatMap(region => 
+    baseMonths.map((m, i) => ({
+      month: m,
+      state: region.state,
+      concessoes: Math.round((18500 + (i * 800)) * (region.population / 20000000)),
+      inadimplencia: Number((region.inadimplencia - (i * 0.02)).toFixed(1)),
+      ticket_medio: Math.round(region.rendaMedia * (1 + (i * 0.01)))
+    }))
+  )
 ];
 
 export const stateCoordinates: Record<string, { x: number; y: number; name: string }> = {
