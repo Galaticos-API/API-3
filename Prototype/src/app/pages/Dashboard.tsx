@@ -10,14 +10,33 @@ import { TrendingUp, Users, DollarSign, Target } from "lucide-react";
 import { Badge } from "../components/ui/badge";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "../components/ui/chart";
 
-export function Dashboard() {
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Calendar as CalendarIcon, X } from "lucide-react";
+import { DateRange } from "react-day-picker";
+
+import { Button } from "../components/ui/button";
+import { Calendar } from "../components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
+import { cn } from "../components/ui/utils";
+
+export function Dashboard() {  
   const [selectedState, setSelectedState] = useState<string | undefined>();
-  const [timeFilter, setTimeFilter] = useState("12m");
+  
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: new Date(2025, 0, 1),
+    to: new Date(2026, 2, 31),
+  });
+
+  const handleClearFilters = () => {
+    setDate(undefined);
+    setSelectedState(undefined);
+  };
 
   const filteredTimeData = useMemo(() => {
     const m: Record<string, number> = { "3m": 3, "6m": 6, "12m": 12 };
-    return timeSeriesData.slice(-(m[timeFilter]));
-  }, [timeFilter]);
+    return timeSeriesData.slice(-(m[date?.to ? "12m" : date?.from ? "6m" : "3m"] || 3));
+  }, [date]);
 
   const filteredRegions = useMemo(() => {
     if (!selectedState) return regionsData;
@@ -62,28 +81,63 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      {/* Header & Filtros */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold text-white">Dashboard de Oportunidades</h2>
           <p className="text-slate-400 mt-1">Análise territorial de potencial de crédito inclusivo</p>
         </div>
-        <div className="flex items-center gap-4">
+        
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Date Range Picker */}
           <div className="flex items-center gap-2">
-            <label className="text-sm text-slate-400">Período:</label>
-            <Select value={timeFilter} onValueChange={setTimeFilter}>
-              <SelectTrigger className="w-32 bg-[#111827] border-white/10 text-white"><SelectValue /></SelectTrigger>
-              <SelectContent className="bg-[#111827] border-white/10 text-white">
-                <SelectItem value="3m">3 meses</SelectItem>
-                <SelectItem value="6m">6 meses</SelectItem>
-                <SelectItem value="12m">12 meses</SelectItem>
-              </SelectContent>
-            </Select>
+            <label className="text-sm font-medium text-slate-400">Período:</label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="date"
+                  variant={"outline"}
+                  className={cn(
+                    "w-[260px] justify-start text-left font-normal bg-[#111827] border-white/10 text-white hover:bg-white/5 hover:text-white",
+                    !date && "text-slate-400"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date?.from ? (
+                    date.to ? (
+                      <>
+                        {format(date.from, "dd LLL, y", { locale: ptBR })} -{" "}
+                        {format(date.to, "dd LLL, y", { locale: ptBR })}
+                      </>
+                    ) : (
+                      format(date.from, "dd LLL, y", { locale: ptBR })
+                    )
+                  ) : (
+                    <span>Selecione um período</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 bg-[#111827] border-white/10 text-white" align="end">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={date?.from}
+                  selected={date}
+                  onSelect={setDate}
+                  numberOfMonths={2}
+                  className="bg-[#111827] text-white"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
+
+          {/* Seletor de Estado */}
           <div className="flex items-center gap-2">
-            <label className="text-sm text-slate-400">Estado:</label>
+            <label className="text-sm font-medium text-slate-400">Estado:</label>
             <Select value={selectedState || "all"} onValueChange={v => setSelectedState(v === "all" ? undefined : v)}>
-              <SelectTrigger className="w-36 bg-[#111827] border-white/10 text-white"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[120px] bg-[#111827] border-white/10 text-white">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
               <SelectContent className="bg-[#111827] border-white/10 text-white">
                 <SelectItem value="all">Todos</SelectItem>
                 {["SP", "RJ", "MG", "BA", "PE", "CE", "PR", "RS", "PA", "GO"].map(s => (
@@ -92,6 +146,18 @@ export function Dashboard() {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Botão de Limpar Filtros */}
+          {(date || selectedState) && (
+            <Button 
+              variant="ghost" 
+              onClick={handleClearFilters}
+              className="text-slate-400 hover:text-white hover:bg-white/5 h-10 px-3 transition-colors"
+            >
+              <X className="mr-2 h-4 w-4" />
+              Limpar
+            </Button>
+          )}
         </div>
       </div>
 
