@@ -297,24 +297,30 @@ export function Dashboard() {
             <CardDescription className="text-slate-400">Volume de operações ao longo do tempo</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer 
-              config={{ concessoes: { label: "Concessões", color: "#3b82f6" } }} 
-              className="h-[240px] w-full"
-            >
-              <AreaChart data={filteredTimeData} margin={{ left: -20, right: 10, top: 10, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--color-concessoes)" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="var(--color-concessoes)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                <YAxis tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Area type="monotone" dataKey="concessoes" stroke="var(--color-concessoes)" strokeWidth={2} fill="url(#cg)" />
-              </AreaChart>
-            </ChartContainer>
+            {filteredTimeData.length > 0 ? (
+              <ChartContainer 
+                config={{ concessoes: { label: "Concessões", color: "#3b82f6" } }} 
+                className="h-[240px] w-full"
+              >
+                <AreaChart data={filteredTimeData} margin={{ left: -20, right: 10, top: 10, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--color-concessoes)" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="var(--color-concessoes)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                  <YAxis tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Area type="monotone" dataKey="concessoes" stroke="var(--color-concessoes)" strokeWidth={2} fill="url(#cg)" />
+                </AreaChart>
+              </ChartContainer>
+            ) : (
+              <div className="flex h-[240px] w-full items-center justify-center text-sm text-slate-500 bg-white/[0.02] rounded-lg border border-white/5 border-dashed">
+                Nenhum dado encontrado para o filtro atual.
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -324,19 +330,25 @@ export function Dashboard() {
             <CardDescription className="text-slate-400">Evolução do índice (%)</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer 
-              config={{ inadimplencia: { label: "Inadimplência", color: "#ef4444" } }} 
-              className="h-[240px] w-full"
-            >
-              <LineChart data={filteredTimeData} margin={{ left: -20, right: 10, top: 10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                <YAxis domain={[0, 6]} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <ChartLegend content={<ChartLegendContent />} />
-                <Line type="monotone" dataKey="inadimplencia" stroke="var(--color-inadimplencia)" strokeWidth={2} dot={{ fill: "var(--color-inadimplencia)", r: 3 }} />
-              </LineChart>
-            </ChartContainer>
+            {filteredTimeData.length > 0 ? (
+              <ChartContainer 
+                config={{ inadimplencia: { label: "Inadimplência", color: "#ef4444" } }} 
+                className="h-[240px] w-full"
+              >
+                <LineChart data={filteredTimeData} margin={{ left: -20, right: 10, top: 10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                  <YAxis domain={[0, 6]} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartLegend content={<ChartLegendContent />} />
+                  <Line type="monotone" dataKey="inadimplencia" stroke="var(--color-inadimplencia)" strokeWidth={2} dot={{ fill: "var(--color-inadimplencia)", r: 3 }} />
+                </LineChart>
+              </ChartContainer>
+            ) : (
+              <div className="flex h-[240px] w-full items-center justify-center text-sm text-slate-500 bg-white/[0.02] rounded-lg border border-white/5 border-dashed">
+                Nenhum dado encontrado para o filtro atual.
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -346,18 +358,24 @@ export function Dashboard() {
             <CardDescription className="text-slate-400">Valor médio das operações (R$)</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer 
-              config={{ ticket_medio: { label: "Ticket Médio", color: "#22c55e" } }} 
-              className="h-[240px] w-full"
-            >
-              <BarChart data={filteredTimeData} margin={{ left: -20, right: 10, top: 10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                <YAxis tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="ticket_medio" fill="var(--color-ticket_medio)" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ChartContainer>
+            {filteredTimeData.length > 0 ? (
+              <ChartContainer 
+                config={{ ticket_medio: { label: "Ticket Médio", color: "#22c55e" } }} 
+                className="h-[240px] w-full"
+              >
+                <BarChart data={filteredTimeData} margin={{ left: -20, right: 10, top: 10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                  <YAxis tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="ticket_medio" fill="var(--color-ticket_medio)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ChartContainer>
+            ) : (
+              <div className="flex h-[240px] w-full items-center justify-center text-sm text-slate-500 bg-white/[0.02] rounded-lg border border-white/5 border-dashed">
+                Nenhum dado encontrado para o filtro atual.
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -367,29 +385,35 @@ export function Dashboard() {
             <CardDescription className="text-slate-400">Classificação das regiões analisadas</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer 
-              config={{
-                excelente: { label: "Excelente", color: "#10b981" },
-                bom: { label: "Bom", color: "#3b82f6" },
-                medio: { label: "Médio", color: "#f59e0b" },
-                baixo: { label: "Baixo", color: "#ef4444" },
-              }} 
-              className="h-[240px] w-full"
-            >
-              <PieChart>
-                <Pie 
-                  data={scoreDistribution} 
-                  cx="50%" cy="50%" 
-                  labelLine={false}
-                  label={({ name, count }) => `${name}: ${count}`} 
-                  outerRadius={85} 
-                  dataKey="count"
-                >
-                  {scoreDistribution.map((e, i) => <Cell key={i} fill={e.color} />)}
-                </Pie>
-                <ChartTooltip content={<ChartTooltipContent />} />
-              </PieChart>
-            </ChartContainer>
+            {scoreDistribution.length > 0 ? (
+              <ChartContainer 
+                config={{
+                  excelente: { label: "Excelente", color: "#10b981" },
+                  bom: { label: "Bom", color: "#3b82f6" },
+                  medio: { label: "Médio", color: "#f59e0b" },
+                  baixo: { label: "Baixo", color: "#ef4444" },
+                }} 
+                className="h-[240px] w-full"
+              >
+                <PieChart>
+                  <Pie 
+                    data={scoreDistribution} 
+                    cx="50%" cy="50%" 
+                    labelLine={false}
+                    label={({ name, count }) => `${name}: ${count}`} 
+                    outerRadius={85} 
+                    dataKey="count"
+                  >
+                    {scoreDistribution.map((e, i) => <Cell key={i} fill={e.color} />)}
+                  </Pie>
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                </PieChart>
+              </ChartContainer>
+            ) : (
+              <div className="flex h-[240px] w-full items-center justify-center text-sm text-slate-500 bg-white/[0.02] rounded-lg border border-white/5 border-dashed">
+                Nenhuma região disponível para análise.
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
