@@ -2,27 +2,76 @@ import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { BrazilMap } from "../components/BrazilMap";
-import { regionsData, timeSeriesData, kpiData } from "../data/mockData";
+import { regionsData, timeSeriesData } from "../data/mockData";
 import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
+  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, AreaChart, Area, PieChart, Pie, Cell,
 } from "recharts";
-import { TrendingUp, Users, DollarSign, Target, ArrowUpRight } from "lucide-react";
+import { TrendingUp, Users, DollarSign, Target } from "lucide-react";
 import { Badge } from "../components/ui/badge";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "../components/ui/chart";
 
-export function Dashboard() {
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Calendar as CalendarIcon, X } from "lucide-react";
+import { DateRange } from "react-day-picker";
+
+import { Button } from "../components/ui/button";
+import { Calendar } from "../components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
+import { cn } from "../components/ui/utils";
+
+export function Dashboard() {  
   const [selectedState, setSelectedState] = useState<string | undefined>();
-  const [timeFilter, setTimeFilter] = useState("12m");
+  
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: new Date(2025, 0, 1),
+    to: new Date(2026, 2, 31),
+  });
+
+  const parseMonthYear = (str: string) => {
+    const months: Record<string, number> = { Jan: 0, Fev: 1, Mar: 2, Abr: 3, Mai: 4, Jun: 5, Jul: 6, Ago: 7, Set: 8, Out: 9, Nov: 10, Dez: 11 };
+    const [m, y] = str.split("/");
+    return new Date(2000 + parseInt(y), months[m], 1);
+  };
 
   const filteredTimeData = useMemo(() => {
-    const m: Record<string, number> = { "3m": 3, "6m": 6, "12m": 12 };
-    return timeSeriesData.slice(-(m[timeFilter]));
-  }, [timeFilter]);
+    let data = timeSeriesData.filter(d => d.state === (selectedState || "all"));
+
+    if (date?.from) {
+      data = data.filter(d => {
+        const itemDate = parseMonthYear(d.month);
+        const isAfterStart = itemDate >= date.from!;
+        const isBeforeEnd = date.to ? itemDate <= date.to : true;
+        return isAfterStart && isBeforeEnd;
+      });
+    }
+    return data;
+  }, [date, selectedState]);
 
   const filteredRegions = useMemo(() => {
     if (!selectedState) return regionsData;
     return regionsData.filter(r => r.state === selectedState);
   }, [selectedState]);
+
+  const dynamicKPIs = useMemo(() => {
+    const totalPotencial = filteredRegions.reduce((sum, r) => sum + r.potencialCredito, 0);
+    const avgTicket = filteredTimeData.length 
+      ? filteredTimeData.reduce((sum, t) => sum + t.ticket_medio, 0) / filteredTimeData.length 
+      : 0;
+    const popAlvo = filteredRegions.reduce((sum, r) => sum + r.population, 0);
+
+    return { 
+      totalPotencial, 
+      regioesMapeadas: filteredRegions.length, 
+      ticketMedioNacional: avgTicket, 
+      popAlvo 
+    };
+  }, [filteredRegions, filteredTimeData]);
+
+  const handleClearFilters = () => {
+    setDate(undefined);
+    setSelectedState(undefined);
+  };
 
   const allRegionsSorted = useMemo(() => [...regionsData].sort((a, b) => b.score - a.score), []);
 
@@ -45,13 +94,6 @@ export function Dashboard() {
   const fmtCurrency = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", notation: "compact", maximumFractionDigits: 1 }).format(v);
   const fmtNumber = (v: number) => new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 }).format(v);
 
-  const grid = { stroke: "rgba(255,255,255,0.05)" };
-  const tick = { fill: "#94a3b8", fontSize: 11 };
-  const ttip = {
-    contentStyle: { backgroundColor: "#111827", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#f1f5f9" },
-    labelStyle: { color: "#94a3b8" },
-  };
-
   const selectedRegion = selectedState ? regionsData.find(r => r.state === selectedState) : null;
 
   const handleStateClick = (uf: string) => {
@@ -69,28 +111,65 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      {/* Header & Filtros */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold text-white">Dashboard de Oportunidades</h2>
           <p className="text-slate-400 mt-1">Análise territorial de potencial de crédito inclusivo</p>
         </div>
-        <div className="flex items-center gap-4">
+        
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Date Range Picker */}
           <div className="flex items-center gap-2">
-            <label className="text-sm text-slate-400">Período:</label>
-            <Select value={timeFilter} onValueChange={setTimeFilter}>
-              <SelectTrigger className="w-32 bg-[#111827] border-white/10 text-white"><SelectValue /></SelectTrigger>
-              <SelectContent className="bg-[#111827] border-white/10 text-white">
-                <SelectItem value="3m">3 meses</SelectItem>
-                <SelectItem value="6m">6 meses</SelectItem>
-                <SelectItem value="12m">12 meses</SelectItem>
-              </SelectContent>
-            </Select>
+            <label className="text-sm font-medium text-slate-400">Período:</label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <div>
+                  <Button
+                    id="date"
+                    variant={"outline"}
+                    className={cn(
+                      "w-[260px] justify-start text-left font-normal bg-[#111827] border-white/10 text-white hover:bg-white/5 hover:text-white",
+                      !date && "text-slate-400"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date?.from ? (
+                      date.to ? (
+                        <>
+                          {format(date.from, "dd LLL, y", { locale: ptBR })} -{" "}
+                          {format(date.to, "dd LLL, y", { locale: ptBR })}
+                        </>
+                      ) : (
+                        format(date.from, "dd LLL, y", { locale: ptBR })
+                      )
+                    ) : (
+                      <span>Selecione um período</span>
+                    )}
+                  </Button>
+                </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 bg-[#111827] border-white/10 text-white" align="end">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={date?.from}
+                  selected={date}
+                  onSelect={setDate}
+                  numberOfMonths={2}
+                  className="bg-[#111827] text-white"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
+
+          {/* Seletor de Estado */}
           <div className="flex items-center gap-2">
-            <label className="text-sm text-slate-400">Estado:</label>
+            <label className="text-sm font-medium text-slate-400">Estado:</label>
             <Select value={selectedState || "all"} onValueChange={v => setSelectedState(v === "all" ? undefined : v)}>
-              <SelectTrigger className="w-36 bg-[#111827] border-white/10 text-white"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[120px] bg-[#111827] border-white/10 text-white">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
               <SelectContent className="bg-[#111827] border-white/10 text-white">
                 <SelectItem value="all">Todos</SelectItem>
                 {["SP", "RJ", "MG", "BA", "PE", "CE", "PR", "RS", "PA", "GO"].map(s => (
@@ -99,16 +178,28 @@ export function Dashboard() {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Botão de Limpar Filtros */}
+          {(date || selectedState) && (
+            <Button 
+              variant="ghost" 
+              onClick={handleClearFilters}
+              className="text-slate-400 hover:text-white hover:bg-white/5 h-10 px-3 transition-colors"
+            >
+              <X className="mr-2 h-4 w-4" />
+              Limpar
+            </Button>
+          )}
         </div>
       </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: "Potencial Total", value: fmtCurrency(kpiData.totalPotencial), sub: `↗ +${kpiData.crescimentoMensal}% vs mês anterior`, icon: <DollarSign className="w-5 h-5 text-white/80" />, grad: "from-green-700 to-green-500" },
-          { label: "Regiões Mapeadas", value: String(kpiData.regioesMapeadas), sub: "Territórios analisados", icon: <Target className="w-5 h-5 text-white/80" />, grad: "from-blue-700 to-blue-400" },
-          { label: "Ticket Médio", value: fmtCurrency(kpiData.ticketMedioNacional), sub: "↗ +4.2% vs trimestre anterior", icon: <TrendingUp className="w-5 h-5 text-white/80" />, grad: "from-purple-700 to-purple-400" },
-          { label: "População Alvo", value: fmtNumber(filteredRegions.reduce((s, r) => s + r.population, 0)), sub: "Habitantes nas regiões", icon: <Users className="w-5 h-5 text-white/80" />, grad: "from-orange-600 to-orange-400" },
+          { label: "Potencial Total", value: fmtCurrency(dynamicKPIs.totalPotencial), sub: "Com base no filtro atual", icon: <DollarSign className="w-5 h-5 text-white/80" />, grad: "from-green-700 to-green-500" },
+          { label: "Regiões Mapeadas", value: String(dynamicKPIs.regioesMapeadas), sub: "Territórios em exibição", icon: <Target className="w-5 h-5 text-white/80" />, grad: "from-blue-700 to-blue-400" },
+          { label: "Ticket Médio", value: fmtCurrency(dynamicKPIs.ticketMedioNacional), sub: "Média do período", icon: <TrendingUp className="w-5 h-5 text-white/80" />, grad: "from-purple-700 to-purple-400" },
+          { label: "População Alvo", value: fmtNumber(dynamicKPIs.popAlvo), sub: "Habitantes nas regiões", icon: <Users className="w-5 h-5 text-white/80" />, grad: "from-orange-600 to-orange-400" },
         ].map(k => (
           <div key={k.label} className={`rounded-2xl p-5 relative overflow-hidden bg-gradient-to-br ${k.grad}`}>
             <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full bg-white/10" />
@@ -206,21 +297,30 @@ export function Dashboard() {
             <CardDescription className="text-slate-400">Volume de operações ao longo do tempo</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={240}>
-              <AreaChart data={filteredTimeData}>
-                <defs>
-                  <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" {...grid} />
-                <XAxis dataKey="month" tick={tick} />
-                <YAxis tick={tick} />
-                <Tooltip {...ttip} />
-                <Area type="monotone" dataKey="concessoes" stroke="#3b82f6" strokeWidth={2} fill="url(#cg)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            {filteredTimeData.length > 0 ? (
+              <ChartContainer 
+                config={{ concessoes: { label: "Concessões", color: "#3b82f6" } }} 
+                className="h-[240px] w-full"
+              >
+                <AreaChart data={filteredTimeData} margin={{ left: -20, right: 10, top: 10, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--color-concessoes)" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="var(--color-concessoes)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                  <YAxis tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Area type="monotone" dataKey="concessoes" stroke="var(--color-concessoes)" strokeWidth={2} fill="url(#cg)" />
+                </AreaChart>
+              </ChartContainer>
+            ) : (
+              <div className="flex h-[240px] w-full items-center justify-center text-sm text-slate-500 bg-white/[0.02] rounded-lg border border-white/5 border-dashed">
+                Nenhum dado encontrado para o filtro atual.
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -230,16 +330,25 @@ export function Dashboard() {
             <CardDescription className="text-slate-400">Evolução do índice (%)</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={240}>
-              <LineChart data={filteredTimeData}>
-                <CartesianGrid strokeDasharray="3 3" {...grid} />
-                <XAxis dataKey="month" tick={tick} />
-                <YAxis tick={tick} domain={[0, 6]} />
-                <Tooltip {...ttip} />
-                <Legend wrapperStyle={{ color: "#94a3b8", fontSize: 12 }} />
-                <Line type="monotone" dataKey="inadimplencia" stroke="#ef4444" strokeWidth={2} dot={{ fill: "#ef4444", r: 3 }} name="Inadimplência %" />
-              </LineChart>
-            </ResponsiveContainer>
+            {filteredTimeData.length > 0 ? (
+              <ChartContainer 
+                config={{ inadimplencia: { label: "Inadimplência", color: "#ef4444" } }} 
+                className="h-[240px] w-full"
+              >
+                <LineChart data={filteredTimeData} margin={{ left: -20, right: 10, top: 10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                  <YAxis domain={[0, 6]} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartLegend content={<ChartLegendContent />} />
+                  <Line type="monotone" dataKey="inadimplencia" stroke="var(--color-inadimplencia)" strokeWidth={2} dot={{ fill: "var(--color-inadimplencia)", r: 3 }} />
+                </LineChart>
+              </ChartContainer>
+            ) : (
+              <div className="flex h-[240px] w-full items-center justify-center text-sm text-slate-500 bg-white/[0.02] rounded-lg border border-white/5 border-dashed">
+                Nenhum dado encontrado para o filtro atual.
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -249,15 +358,24 @@ export function Dashboard() {
             <CardDescription className="text-slate-400">Valor médio das operações (R$)</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={filteredTimeData}>
-                <CartesianGrid strokeDasharray="3 3" {...grid} />
-                <XAxis dataKey="month" tick={tick} />
-                <YAxis tick={tick} />
-                <Tooltip {...ttip} />
-                <Bar dataKey="ticket_medio" fill="#22c55e" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {filteredTimeData.length > 0 ? (
+              <ChartContainer 
+                config={{ ticket_medio: { label: "Ticket Médio", color: "#22c55e" } }} 
+                className="h-[240px] w-full"
+              >
+                <BarChart data={filteredTimeData} margin={{ left: -20, right: 10, top: 10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                  <YAxis tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="ticket_medio" fill="var(--color-ticket_medio)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ChartContainer>
+            ) : (
+              <div className="flex h-[240px] w-full items-center justify-center text-sm text-slate-500 bg-white/[0.02] rounded-lg border border-white/5 border-dashed">
+                Nenhum dado encontrado para o filtro atual.
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -267,15 +385,35 @@ export function Dashboard() {
             <CardDescription className="text-slate-400">Classificação das regiões analisadas</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={240}>
-              <PieChart>
-                <Pie data={scoreDistribution} cx="50%" cy="50%" labelLine={false}
-                  label={({ name, count }) => `${name}: ${count}`} outerRadius={90} dataKey="count">
-                  {scoreDistribution.map((e, i) => <Cell key={i} fill={e.color} />)}
-                </Pie>
-                <Tooltip {...ttip} />
-              </PieChart>
-            </ResponsiveContainer>
+            {scoreDistribution.length > 0 ? (
+              <ChartContainer 
+                config={{
+                  excelente: { label: "Excelente", color: "#10b981" },
+                  bom: { label: "Bom", color: "#3b82f6" },
+                  medio: { label: "Médio", color: "#f59e0b" },
+                  baixo: { label: "Baixo", color: "#ef4444" },
+                }} 
+                className="h-[240px] w-full"
+              >
+                <PieChart>
+                  <Pie 
+                    data={scoreDistribution} 
+                    cx="50%" cy="50%" 
+                    labelLine={false}
+                    label={({ name, count }) => `${name}: ${count}`} 
+                    outerRadius={85} 
+                    dataKey="count"
+                  >
+                    {scoreDistribution.map((e, i) => <Cell key={i} fill={e.color} />)}
+                  </Pie>
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                </PieChart>
+              </ChartContainer>
+            ) : (
+              <div className="flex h-[240px] w-full items-center justify-center text-sm text-slate-500 bg-white/[0.02] rounded-lg border border-white/5 border-dashed">
+                Nenhuma região disponível para análise.
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
