@@ -4,6 +4,7 @@ import { scaleQuantile } from 'd3-scale';
 
 const geoUrl = "https://raw.githubusercontent.com/luizbills/brasil-topojson/master/topojson/brm.json";
 
+
 interface MapData {
   estado: string;
   valor: number;
@@ -11,9 +12,11 @@ interface MapData {
 
 interface BrazilMapProps {
   data: MapData[];
+  selectedState?: string;
+  onStateClick?: (uf: string) => void;
 }
 
-export const BrazilMap: React.FC<BrazilMapProps> = ({ data }) => {
+export const BrazilMap: React.FC<BrazilMapProps> = ({ data, selectedState, onStateClick }) => {
   const colorScale = useMemo(() => {
     const valores = data.map(d => d.valor);
     return scaleQuantile<string>()
@@ -29,15 +32,16 @@ export const BrazilMap: React.FC<BrazilMapProps> = ({ data }) => {
       <ComposableMap projection="geoMercator" projectionConfig={{ scale: 800, center: [-54, -15] }} className="w-full h-auto">
         <Geographies geography={geoUrl}>
           {({ geographies }) => geographies.map((geo) => {
-            const stateCode = geo.properties.id; 
+            const stateCode = geo.properties.id;
             const stateData = data.find((s) => s.estado === stateCode);
             return (
               <Geography
                 key={geo.rsmKey}
                 geography={geo}
-                fill={stateData ? colorScale(stateData.valor) : "#EEE"}
-                stroke="#FFF"
-                strokeWidth={0.5}
+                onClick={() => onStateClick && onStateClick(stateCode)}
+                fill={selectedState === stateCode ? "#F97316" : (stateData ? colorScale(stateData.valor) : "#EEE")}
+                stroke={selectedState === stateCode ? "#FFF" : "#FFF"}
+                strokeWidth={selectedState === stateCode ? 1.5 : 0.5}
                 style={{
                   default: { outline: "none" },
                   hover: { fill: "#F59E0B", outline: "none", cursor: "pointer" },
