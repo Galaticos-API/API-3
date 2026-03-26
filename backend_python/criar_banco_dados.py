@@ -20,7 +20,8 @@ def criar_banco_dados():
     
     # Caminho do banco de dados
     diretorio_banco = Path(__file__).parent.parent / "database"
-    caminho_banco = diretorio_banco / "credito_inclusivo.db"
+    from api.config import DB_FILENAME
+    caminho_banco = diretorio_banco / DB_FILENAME
     
     # Garante que o diretório exists
     diretorio_banco.mkdir(parents=True, exist_ok=True)

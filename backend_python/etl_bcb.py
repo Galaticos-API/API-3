@@ -23,8 +23,14 @@ from pathlib import Path
 # CONFIGURAÇÃO — caminho absoluto baseado no arquivo
 # ============================================================
 # Constrói caminho absoluto: escripts/backend_python/etl_bcb.py → database/credito_inclusivo.db
+import sys
+import os
+
 SCRIPT_DIR = Path(__file__).parent.absolute()
-DB_PATH = SCRIPT_DIR.parent / "database" / "credito_inclusivo.db"
+sys.path.append(str(SCRIPT_DIR))
+
+from api.config import DB_FILENAME
+DB_PATH = SCRIPT_DIR.parent / "database" / DB_FILENAME
 BCB_URL = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.{codigo}/dados"
 
 # ============================================================
