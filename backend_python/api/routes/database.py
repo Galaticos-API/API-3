@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends, Query, Path as APIPath
 from pydantic import BaseModel, Field
 import sqlite3
 import re
@@ -30,7 +30,7 @@ def setup_database(config: DatabaseConfig):
 
 # Exemplo de Rota usando parametro (prevenindo SQL Injection)
 @router.get("/uf/{sigla_uf}")
-def get_uf_details(sigla_uf: str = Path(..., min_length=2, max_length=2, regex="^[A-Z]{2}$")):
+def get_uf_details(sigla_uf: str = APIPath(..., min_length=2, max_length=2, pattern="^[A-Z]{2}$")):
     """
     Exemplo prático de proteção contra SQL Injection com validação de entrada rigorosa
     e parameterized query.
@@ -38,6 +38,7 @@ def get_uf_details(sigla_uf: str = Path(..., min_length=2, max_length=2, regex="
     diretorio_banco = Path(__file__).parent.parent.parent.parent / "database"
     caminho_banco = diretorio_banco / DB_FILENAME
     
+    conn = None
     try:
         conn = sqlite3.connect(caminho_banco)
         cursor = conn.cursor()
@@ -53,4 +54,5 @@ def get_uf_details(sigla_uf: str = Path(..., min_length=2, max_length=2, regex="
     except sqlite3.Error:
         raise HTTPException(status_code=500, detail="Database Error")
     finally:
-        conn.close()
+        if conn:
+            conn.close()
