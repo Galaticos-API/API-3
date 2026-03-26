@@ -17,11 +17,14 @@ import sqlite3
 import requests
 import time
 from datetime import datetime
+from pathlib import Path
 
 # ============================================================
-# CONFIGURAÇÃO — ajuste o caminho se necessário
+# CONFIGURAÇÃO — caminho absoluto baseado no arquivo
 # ============================================================
-DB_PATH = "../database/credito_inclusivo.db"
+# Constrói caminho absoluto: escripts/backend_python/etl_bcb.py → database/credito_inclusivo.db
+SCRIPT_DIR = Path(__file__).parent.absolute()
+DB_PATH = SCRIPT_DIR.parent / "database" / "credito_inclusivo.db"
 BCB_URL = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.{codigo}/dados"
 
 # Séries prioritárias para o projeto (crédito inclusivo)
