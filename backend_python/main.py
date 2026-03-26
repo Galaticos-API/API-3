@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
 
-from api.routes import database, etl
+from api.routes import database, etl, data
 
 # Instância da aplicação
 app = FastAPI(
@@ -31,6 +31,7 @@ app.add_middleware(
 # Roteadores
 app.include_router(database.router)
 app.include_router(etl.router)
+app.include_router(data.router)
 
 # =========================================================
 # GLOBAL EXCEPTION HANDLER (Ocultar Stack Trace)
