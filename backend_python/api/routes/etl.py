@@ -1,28 +1,19 @@
-from fastapi import APIRouter, HTTPException, BackgroundTasks, status
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException
+import logging
 
-router = APIRouter(prefix="/etl", tags=["ETL"])
+from etl_bcb import rodar_etl
 
-class ETLConfig(BaseModel):
-    run_all: bool = True
+router = APIRouter()
+logger = logging.getLogger(__name__)
 
-@router.post("/run", status_code=status.HTTP_202_ACCEPTED)
-def trigger_etl(config: ETLConfig, background_tasks: BackgroundTasks):
+@router.post("/run")
+def run_etl():
     """
-    Endpoint para execução do script ETL.
-    Retorna 202 Accepted imediatamente, processando os dados do BCB em background 
-    para não bloquear (timeout) a conexão com o Frontend.
+    Roda os algoritmos de ETL do Banco Central para salvar as taxas e estatísticas no banco de dados.
     """
-    from etl_bcb import rodar_etl
-    
     try:
-        # Enfileira a execução para rodar solta sem travar a thread HTTP principal
-        background_tasks.add_task(rodar_etl)
-        
-        return {
-            "status": "processing", 
-            "message": "ETL iniciado em segundo plano com sucesso. Esta operação pode demorar alguns minutos."
-        }
+        rodar_etl()
+        return {"status": "success", "message": "Processo de ETL executado e concluído com sucesso."}
     except Exception as e:
-        # Erro genérico mascarado no main.py (global exception handler)
-        raise e
+        logger.error(f"Erro ao rodar ETL: {e}")
+        raise HTTPException(status_code=500, detail=f"O processo de ingestão ETL falhou: {str(e)}")
