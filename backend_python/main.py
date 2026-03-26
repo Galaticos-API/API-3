@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
 
@@ -9,6 +10,22 @@ app = FastAPI(
     title="API - Crédito Inclusivo",
     description="Serviço Backend Python para processamento ETL e DB",
     version="1.0.0"
+)
+
+# =========================================================
+# CORS Configuração 
+# =========================================================
+origens_permitidas = [
+    "http://localhost:5173", # Porta padrão do Vite (React)
+    "http://localhost:3000", # Porta clássica do React e Next.js
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origens_permitidas,
+    allow_credentials=True,
+    allow_methods=["*"],  # Autoriza todos os métodos (GET, POST, OPTIONS, etc.)
+    allow_headers=["*"],  # Autoriza envio de Content-Type e Authorization headers
 )
 
 # Roteadores
