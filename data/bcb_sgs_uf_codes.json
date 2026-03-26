@@ -1,0 +1,842 @@
+[
+    {
+        "codigo": 21085,
+        "uf": "BR",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 21086,
+        "uf": "BR",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 21082,
+        "uf": "BR",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 20540,
+        "uf": "BR",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 20541,
+        "uf": "BR",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 20539,
+        "uf": "BR",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 15861,
+        "uf": "AC",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15862,
+        "uf": "AL",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15863,
+        "uf": "AP",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15864,
+        "uf": "AM",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15865,
+        "uf": "BA",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15866,
+        "uf": "CE",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15867,
+        "uf": "DF",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15868,
+        "uf": "ES",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15869,
+        "uf": "GO",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15870,
+        "uf": "MA",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15871,
+        "uf": "MT",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15872,
+        "uf": "MS",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15873,
+        "uf": "MG",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15874,
+        "uf": "PA",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15875,
+        "uf": "PB",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15876,
+        "uf": "PR",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15877,
+        "uf": "PE",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15878,
+        "uf": "PI",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15879,
+        "uf": "RJ",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15880,
+        "uf": "RN",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15881,
+        "uf": "RS",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15882,
+        "uf": "RO",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15883,
+        "uf": "RR",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15884,
+        "uf": "SC",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15885,
+        "uf": "SP",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15886,
+        "uf": "SE",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15887,
+        "uf": "TO",
+        "metrica": "Inadimplência PF"
+    },
+    {
+        "codigo": 15893,
+        "uf": "AC",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15894,
+        "uf": "AL",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15895,
+        "uf": "AP",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15896,
+        "uf": "AM",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15897,
+        "uf": "BA",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15898,
+        "uf": "CE",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15899,
+        "uf": "DF",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15900,
+        "uf": "ES",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15901,
+        "uf": "GO",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15902,
+        "uf": "MA",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15903,
+        "uf": "MT",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15904,
+        "uf": "MS",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15905,
+        "uf": "MG",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15906,
+        "uf": "PA",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15907,
+        "uf": "PB",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15908,
+        "uf": "PR",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15909,
+        "uf": "PE",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15910,
+        "uf": "PI",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15911,
+        "uf": "RJ",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15912,
+        "uf": "RN",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15913,
+        "uf": "RS",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15914,
+        "uf": "RO",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15915,
+        "uf": "RR",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15916,
+        "uf": "SC",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15917,
+        "uf": "SP",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15918,
+        "uf": "SE",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15919,
+        "uf": "TO",
+        "metrica": "Inadimplência PJ"
+    },
+    {
+        "codigo": 15925,
+        "uf": "AC",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15926,
+        "uf": "AL",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15927,
+        "uf": "AP",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15928,
+        "uf": "AM",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15929,
+        "uf": "BA",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15930,
+        "uf": "CE",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15931,
+        "uf": "DF",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15932,
+        "uf": "ES",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15933,
+        "uf": "GO",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15934,
+        "uf": "MA",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15935,
+        "uf": "MT",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15936,
+        "uf": "MS",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15937,
+        "uf": "MG",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15938,
+        "uf": "PA",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15939,
+        "uf": "PB",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15940,
+        "uf": "PR",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15941,
+        "uf": "PE",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15942,
+        "uf": "PI",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15943,
+        "uf": "RJ",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15944,
+        "uf": "RN",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15945,
+        "uf": "RS",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15946,
+        "uf": "RO",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15947,
+        "uf": "RR",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15948,
+        "uf": "SC",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15949,
+        "uf": "SP",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15950,
+        "uf": "SE",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 15951,
+        "uf": "TO",
+        "metrica": "Inadimplência Total"
+    },
+    {
+        "codigo": 14002,
+        "uf": "AC",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14003,
+        "uf": "AL",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14004,
+        "uf": "AP",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14005,
+        "uf": "AM",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14006,
+        "uf": "BA",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14007,
+        "uf": "CE",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14008,
+        "uf": "DF",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14009,
+        "uf": "ES",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14010,
+        "uf": "GO",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14011,
+        "uf": "MA",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14012,
+        "uf": "MT",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14013,
+        "uf": "MS",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14014,
+        "uf": "MG",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14015,
+        "uf": "PA",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14016,
+        "uf": "PB",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14017,
+        "uf": "PR",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14018,
+        "uf": "PE",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14019,
+        "uf": "PI",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14020,
+        "uf": "RJ",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14021,
+        "uf": "RN",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14022,
+        "uf": "RS",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14023,
+        "uf": "RO",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14024,
+        "uf": "RR",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14025,
+        "uf": "SC",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14026,
+        "uf": "SP",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14027,
+        "uf": "SE",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14028,
+        "uf": "TO",
+        "metrica": "Saldo PF"
+    },
+    {
+        "codigo": 14029,
+        "uf": "AC",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14030,
+        "uf": "AL",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14031,
+        "uf": "AP",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14032,
+        "uf": "AM",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14033,
+        "uf": "BA",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14034,
+        "uf": "CE",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14035,
+        "uf": "DF",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14036,
+        "uf": "ES",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14037,
+        "uf": "GO",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14038,
+        "uf": "MA",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14039,
+        "uf": "MT",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14040,
+        "uf": "MS",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14041,
+        "uf": "MG",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14042,
+        "uf": "PA",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14043,
+        "uf": "PB",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14044,
+        "uf": "PR",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14045,
+        "uf": "PE",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14046,
+        "uf": "PI",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14047,
+        "uf": "RJ",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14048,
+        "uf": "RN",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14049,
+        "uf": "RS",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14050,
+        "uf": "RO",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14051,
+        "uf": "RR",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14052,
+        "uf": "SC",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14053,
+        "uf": "SP",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14054,
+        "uf": "SE",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14055,
+        "uf": "TO",
+        "metrica": "Saldo PJ"
+    },
+    {
+        "codigo": 14056,
+        "uf": "AC",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14057,
+        "uf": "AL",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14058,
+        "uf": "AP",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14059,
+        "uf": "AM",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14060,
+        "uf": "BA",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14061,
+        "uf": "CE",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14062,
+        "uf": "DF",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14063,
+        "uf": "ES",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14064,
+        "uf": "GO",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14065,
+        "uf": "MA",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14066,
+        "uf": "MT",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14067,
+        "uf": "MS",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14068,
+        "uf": "MG",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14069,
+        "uf": "PA",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14070,
+        "uf": "PB",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14071,
+        "uf": "PR",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14072,
+        "uf": "PE",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14073,
+        "uf": "PI",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14074,
+        "uf": "RJ",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14075,
+        "uf": "RN",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14076,
+        "uf": "RS",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14077,
+        "uf": "RO",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14078,
+        "uf": "RR",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14079,
+        "uf": "SC",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14080,
+        "uf": "SP",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14081,
+        "uf": "SE",
+        "metrica": "Saldo Total"
+    },
+    {
+        "codigo": 14082,
+        "uf": "TO",
+        "metrica": "Saldo Total"
+    }
+]
