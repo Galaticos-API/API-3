@@ -23,27 +23,33 @@ from pathlib import Path
 # CONFIGURAÇÃO — caminho absoluto baseado no arquivo
 # ============================================================
 # Constrói caminho absoluto: escripts/backend_python/etl_bcb.py → database/credito_inclusivo.db
+import sys
+import os
+
 SCRIPT_DIR = Path(__file__).parent.absolute()
-DB_PATH = SCRIPT_DIR.parent / "database" / "credito_inclusivo.db"
+sys.path.append(str(SCRIPT_DIR))
+
+from api.config import DB_FILENAME
+DB_PATH = SCRIPT_DIR.parent / "database" / DB_FILENAME
 BCB_URL = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.{codigo}/dados"
 
-# Séries prioritárias para o projeto (crédito inclusivo)
-# Formato: (codigo_serie, sigla_uf_ou_None)
-# None = dado nacional (sem UF)
-SERIES_PARA_COLETAR = [
-    (21082, None),   # Inadimplência PF — nacional
-    (21083, None),   # Inadimplência PJ — nacional
-    (20631, None),   # Concessões total  — nacional
-    (20633, None),   # Concessões PF     — nacional
-    (20540, None),   # Saldo crédito PF  — nacional
-    (29037, None),   # Endividamento famílias
-    (29038, None),   # Comprometimento renda PF
-    (20783, None),   # Spread bancário
-    (20714, None),   # Juros médios PF
-    (433,   None),   # IPCA mensal
-    (11,    None),   # Selic diária
-    (24369, None),   # Desemprego PNAD
-]
+# ============================================================
+# FUNÇÕES
+# ============================================================
+
+def obter_series_do_banco(conn):
+    """
+    Busca todas as séries ativas na tabela dim_serie para coletar.
+    Retorna lista de tuplas: [(codigo_serie, sigla_uf_ou_None), ...]
+    """
+    cursor = conn.execute("SELECT id_serie, abrangencia FROM dim_serie WHERE ativo = 1")
+    series_para_coletar = []
+    for linha in cursor.fetchall():
+        id_serie = linha[0]
+        abrangencia = linha[1]
+        sigla_uf = None if abrangencia == 'Brasil' else abrangencia
+        series_para_coletar.append((id_serie, sigla_uf))
+    return series_para_coletar
 
 # ============================================================
 # FUNÇÕES
@@ -145,17 +151,21 @@ def rodar_etl():
     print("=" * 50)
     print("ETL — Coleta BCB/SGS iniciada")
     print(f"Banco: {DB_PATH}")
-    print(f"Séries para coletar: {len(SERIES_PARA_COLETAR)}")
+    
+    conn = conectar_banco()
+    series_para_coletar = obter_series_do_banco(conn)
+    
+    print(f"Séries para coletar: {len(series_para_coletar)}")
     print("=" * 50)
 
-    conn = conectar_banco()
     total_inseridos = 0
 
-    for codigo, sigla_uf in SERIES_PARA_COLETAR:
+    for codigo, sigla_uf in series_para_coletar:
         uf_label = sigla_uf if sigla_uf else "Nacional"
         print(f"\nColetando série {codigo} ({uf_label})...")
 
-        # Verifica se série está no catálogo
+        # Série já vem do catálogo, então não precisa verificar existência toda vez.
+        # Mas para garantir que não removemos funcionalidade útil:
         if not verificar_serie_existe(conn, codigo):
             print(f"  AVISO: Série {codigo} não está em dim_serie. Pulando.")
             continue

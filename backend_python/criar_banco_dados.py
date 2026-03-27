@@ -20,7 +20,8 @@ def criar_banco_dados():
     
     # Caminho do banco de dados
     diretorio_banco = Path(__file__).parent.parent / "database"
-    caminho_banco = diretorio_banco / "credito_inclusivo.db"
+    from api.config import DB_FILENAME
+    caminho_banco = diretorio_banco / DB_FILENAME
     
     # Garante que o diretório exists
     diretorio_banco.mkdir(parents=True, exist_ok=True)
@@ -280,6 +281,33 @@ def criar_banco_dados():
             (196,   'Poupança - Rentabilidade',               'taxas_de_juros',  'poupanca',     'mensal',     '% a.m.','Brasil', 'Rentabilidade mensal da caderneta de poupança', 1),
         ]
         
+        # ============================================================
+        # GERAÇÃO DINÂMICA DE SÉRIES ESTADUAIS (SGS)
+        # ============================================================
+        ufs_ordem = [
+            'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 
+            'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 
+            'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
+        ]
+        
+        bases_estaduais = {
+            'Inadimplência PF': (15861, 'credito', 'inadimplencia', 'mensal', '%', 'Inadimplência PF acima de 90 dias'),
+            'Inadimplência PJ': (15893, 'credito', 'inadimplencia', 'mensal', '%', 'Inadimplência PJ acima de 90 dias'),
+            'Inadimplência Total': (15925, 'credito', 'inadimplencia', 'mensal', '%', 'Inadimplência total'),
+            'Saldo PF': (14002, 'credito', 'saldos_credito', 'mensal', 'R$ mi', 'Saldo total de crédito para pessoas físicas'),
+            'Saldo PJ': (14029, 'credito', 'saldos_credito', 'mensal', 'R$ mi', 'Saldo total de crédito para pessoas jurídicas'),
+            'Saldo Total': (14056, 'credito', 'saldos_credito', 'mensal', 'R$ mi', 'Saldo total de operações de crédito')
+        }
+        
+        for nome_base, info in bases_estaduais.items():
+            codigo_base, categoria, subcat, per, unid, desc = info
+            for i, uf in enumerate(ufs_ordem):
+                codigo_uf = codigo_base + i
+                nome_indicador = f"{nome_base} - {uf}"
+                series_bcb.append(
+                    (codigo_uf, nome_indicador, categoria, subcat, per, unid, uf, f"{desc} ({uf})", 1)
+                )
+
         cursor.executemany("""
         INSERT OR IGNORE INTO dim_serie VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, series_bcb)
