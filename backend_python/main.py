@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from api.routes import database, etl
+from api.routes import database, etl, data
 
 app = FastAPI(
     title="API - Crédito Inclusivo",
@@ -10,6 +10,7 @@ app = FastAPI(
 # Adicionando os roteadores na aplicação global
 app.include_router(database.router, prefix="/api/database", tags=["Database"])
 app.include_router(etl.router, prefix="/api/etl", tags=["ETL"])
+app.include_router(data.router, prefix="/api", tags=["Data"])
 
 @app.get("/")
 def read_root():
