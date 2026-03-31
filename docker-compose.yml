@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend_python
+      dockerfile: Dockerfile
+    container_name: api3-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Sincroniza o código host com o container. Mudanças em main.py são recarregadas na hora!
+      - ./backend_python:/app
+      # Sincroniza o banco de dados. Como o código aponta para parent/database, mapeamos aqui:
+      - ./database:/database
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: api3-frontend
+    ports:
+      - "80:80"   # Acesse o frontend via http://localhost:80/
+    depends_on:
+      - backend
+    restart: unless-stopped
