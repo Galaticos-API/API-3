@@ -12,21 +12,49 @@ import {
 import { TrendingUp, Users, DollarSign, Target } from "lucide-react";
 import { Badge } from "../components/ui/badge";
 
+//--- Mapeamento de Macroregiões ---
+const MACRO_REGIONS: Record<string, { label: string; states: string[]; color: string }> = {
+  norte: { label: "Norte", states: ["AC","AP","AM","PA","RO","RR","TO"], color: "#22c55e" },
+  nordeste: { label: "Nordeste", states: ["AL","BA","CE","MA","PB","PE","PI","RN","SE"], color: "#f59e0b" },
+  centro_oeste: { label: "Centro-Oeste", states: ["DF","GO","MS","MT"], color: "#a855f7" },
+  sudeste: { label: "Sudeste", states: ["ES","MG","RJ","SP"], color: "#3b82f6" },
+  sul: { label: "Sul", states: ["PR","RS","SC"], color: "#ef4444" },
+};
+
+function getMacroRegion(uf: string): string | undefined {
+  return Object.entries(MACRO_REGIONS).find(([, v]) => v.states.includes(uf))?.[0];
+}
+
 export function Dashboard() {
   const [selectedState, setSelectedState] = useState<string | undefined>();
+  const [selectedMacroRegion, setSelectedMacroRegion] = useState<string | undefined>();
   const [timeFilter, setTimeFilter] = useState("12m");
 
   const filteredTimeData = useMemo(() => {
     const m: Record<string, number> = { "3m": 3, "6m": 6, "12m": 12 };
     return timeSeriesData.slice(-(m[timeFilter]));
   }, [timeFilter]);
+  
+  // --- Estados Disponiveis ---
+  const availableStates = useMemo(() => {
+    const allStates = [...new Set(regionsData.map(r => r.state))].sort();
+    if (!selectedMacroRegion) return allStates;
+    return allStates.filter(s => MACRO_REGIONS[selectedMacroRegion].states.includes(s));
+  }, [selectedMacroRegion]);
 
+  // --- Regiões filtradas ---
   const filteredRegions = useMemo(() => {
-    if (!selectedState) return regionsData;
-    return regionsData.filter(r => r.state === selectedState);
-  }, [selectedState]);
+    return regionsData.filter(r => {
+      const matchesMacro = !selectedMacroRegion || MACRO_REGIONS[selectedMacroRegion].states.includes(r.state);
+      const matchesState = !selectedState || r.state === selectedState;
+      return matchesMacro && matchesState;
+    });
+  }, [selectedMacroRegion, selectedState]);
 
-  const allRegionsSorted = useMemo(() => [...regionsData].sort((a, b) => b.score - a.score), []);
+  const allRegionsSorted = useMemo(
+    () => [...filteredRegions].sort((a, b) => b.score - a.score),
+    [filteredRegions]
+  );
 
   const scoreDistribution = useMemo(() => {
     const ranges = [
@@ -44,8 +72,11 @@ export function Dashboard() {
     return ranges.filter(r => r.count > 0);
   }, [filteredRegions]);
 
-  const fmtCurrency = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", notation: "compact", maximumFractionDigits: 1 }).format(v);
-  const fmtNumber = (v: number) => new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 }).format(v);
+
+  const fmtCurrency = (v: number) =>
+    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", notation: "compact", maximumFractionDigits: 1 }).format(v);
+  const fmtNumber = (v: number) =>
+    new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 }).format(v);
 
   const grid = { stroke: "rgba(255,255,255,0.05)" };
   const tick = { fill: "#94a3b8", fontSize: 11 };
@@ -57,8 +88,35 @@ export function Dashboard() {
   const selectedRegion = selectedState ? regionsData.find(r => r.state === selectedState) : null;
 
   const handleStateClick = (uf: string) => {
-    setSelectedState(uf === "" || uf === selectedState ? undefined : uf);
+    if (uf === "" || uf === selectedState){
+      setSelectedMacroRegion(undefined);
+      return
+    }
+
+    const macro = getMacroRegion(uf);
+    setSelectedState(uf);
+    if (macro && !selectedMacroRegion) {
+
+    }
   };
+
+  const handleMacroChange = (value: string) => {
+    const next = value === "all" ? undefined : value;
+    setSelectedMacroRegion(next);
+    if (next && selectedState && !MACRO_REGIONS[next].states.includes(selectedState)) {
+      setSelectedState(undefined);
+    }
+  };
+
+  const clearAllFilters = () => {
+    setSelectedMacroRegion(undefined);
+    setSelectedState(undefined);
+    setTimerFilter("12m");
+  };
+
+  const hasActiveFilters = !!selectedMacroRegion || !!selectedState || timeFilter !== "12m";
+  const activeFilterCount = [selectedMacroRegion, selectedState, timeFilter !== "12m" ? "time" : undefined]
+    .filter(Boolean).length;
 
   const detailItems = selectedRegion ? [
     { label: "Score", value: selectedRegion.score.toFixed(1), cls: "text-blue-400 font-bold" },
