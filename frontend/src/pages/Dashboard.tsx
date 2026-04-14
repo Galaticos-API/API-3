@@ -14,9 +14,9 @@ import { Badge } from "../components/ui/badge";
 // Mapeamento de Macroregiões
 const MACRO_REGIONS: Record<string, { label: string; states: string[]; color: string }> = {
   norte: { label: "Norte", states: ["AC","AP","AM","PA","RO","RR","TO"], color: "#22c55e" },
-  nordeste: { label: "Nordeste", states: ["AL","BA","CE","MA","PB","PE","PI","RN","SE"], color: "#f59e0b" },
+  nordeste: { label: "Nordeste", states: ["AL","BA","CE","MA","PB","PE","PI","RN","SE"], color: " #3b82f6" },
   centro_oeste: { label: "Centro-Oeste", states: ["DF","GO","MS","MT"], color: "#a855f7" },
-  sudeste: { label: "Sudeste", states: ["ES","MG","RJ","SP"], color: "#3b82f6" },
+  sudeste: { label: "Sudeste", states: ["ES","MG","RJ","SP"], color: "#f97316" },
   sul: { label: "Sul", states: ["PR","RS","SC"], color: "#ef4444" },
 };
 
@@ -265,7 +265,7 @@ export function Dashboard() {
                 }
               >
                 {regionCount}
-              </span>
+              </span>x
             </button>
           );
         })}
