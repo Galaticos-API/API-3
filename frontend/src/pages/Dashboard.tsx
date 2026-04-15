@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { BrazilMap } from "../components/BrazilMap";
@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import { TrendingUp, Users, DollarSign, Target, X, MapPin } from "lucide-react";
 import { Badge } from "../components/ui/badge";
+import { useTimeFilter, type TimePeriod } from "../hooks/useTimeFilter";
 
 // Mapeamento de Macroregiões
 const MACRO_REGIONS: Record<string, { label: string; states: string[]; color: string }> = {
@@ -28,13 +29,49 @@ function getMacroRegion(uf: string): string | undefined {
 export function Dashboard() {
   const [selectedState, setSelectedState] = useState<string | undefined>();
   const [selectedMacroRegion, setSelectedMacroRegion] = useState<string | undefined>();
-  const [timeFilter, setTimeFilter] = useState("12m");
 
-  // Filtros de tempo 
-  const filteredTimeData = useMemo(() => {
-    const m: Record<string, number> = { "3m": 3, "6m": 6, "12m": 12 };
-    return timeSeriesData.slice(-(m[timeFilter]));
-  }, [timeFilter]);
+  const { period, setPeriod, start_date, end_date } = useTimeFilter("1y");  // instancia filtro genérico
+  const [chartData, setChartData] = useState<any[]>([]);  // vai armazenar os dados reais que virão do python (usando any por enquanto)
+
+  // efeito que simula a API enquanto o backend não fica pronto
+  useEffect(() => {
+    const fetchChartData = async () => {
+      // mock temporário
+      console.log(`[Front] Simulando busca de dados de ${start_date} até ${end_date}`);
+      
+      const periodMap: Record<TimePeriod, number> = {
+        "1m": 1,
+        "3m": 3, 
+        "6m": 6, 
+        "1y": 12, 
+        "3y": 36, 
+        "5y": 60, 
+        "all": timeSeriesData.length
+      };
+      
+      const monthsToSlice = periodMap[period] || 12;
+      const mockedResponse = timeSeriesData.slice(-monthsToSlice);
+      
+      setChartData(mockedResponse);
+
+      // quando o backend estiver pronto, apagar o mock acima e descomentar abaixo:
+      /*
+      const stateParam = selectedState ? `&estado=${selectedState}` : "";
+      const url = `http://localhost:8000/api/evolution?start_date=${start_date}&end_date=${end_date}${stateParam}`;
+      
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Falha na rede");
+        const data = await response.json();
+        setChartData(data);
+      } catch (error) {
+        console.error("Erro ao buscar dados", error);
+      }
+      */
+    };
+
+    fetchChartData();
+  }, [period, start_date, end_date, selectedState, selectedMacroRegion]);
 
   // Estados Disponiveis 
   const availableStates = useMemo(() => {
@@ -110,11 +147,11 @@ export function Dashboard() {
   const clearAllFilters = () => {
     setSelectedMacroRegion(undefined);
     setSelectedState(undefined);
-    setTimeFilter("12m");
+    setPeriod("1y");
   };
 
-  const hasActiveFilters = !!selectedMacroRegion || !!selectedState || timeFilter !== "12m";
-  const activeFilterCount = [selectedMacroRegion, selectedState, timeFilter !== "12m" ? "time" : undefined]
+  const hasActiveFilters = !!selectedMacroRegion || !!selectedState || period !== "1y";
+  const activeFilterCount = [selectedMacroRegion, selectedState, period !== "1y" ? "time" : undefined]
     .filter(Boolean).length;
 
   const detailItems = selectedRegion ? [
@@ -142,12 +179,19 @@ export function Dashboard() {
           {/* Período */}
           <div className="flex items-center gap-2">
             <label className="text-sm text-slate-400">Período:</label>
-            <Select value={timeFilter} onValueChange={setTimeFilter}>
-              <SelectTrigger className="w-32 bg-[#111827] border-white/10 text-white"><SelectValue /></SelectTrigger>
+            {/* refatoração do Select para usar o novo hook */}
+            <Select value={period} onValueChange={(value) => setPeriod(value as TimePeriod)}>
+              <SelectTrigger className="w-32 bg-[#111827] border-white/10 text-white">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent className="bg-[#111827] border-white/10 text-white">
+                <SelectItem value="1m">1 mês</SelectItem>
                 <SelectItem value="3m">3 meses</SelectItem>
                 <SelectItem value="6m">6 meses</SelectItem>
-                <SelectItem value="12m">12 meses</SelectItem>
+                <SelectItem value="1y">1 ano</SelectItem>
+                <SelectItem value="3y">3 anos</SelectItem>
+                <SelectItem value="5y">5 anos</SelectItem>
+                <SelectItem value="all">Todo o período</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -225,14 +269,23 @@ export function Dashboard() {
               {selectedState} <X className="w-2.5 h-2.5" />
             </Badge>
           )}
-          {timeFilter !== "12m" && (
+          {period !== "1y" && (
             <Badge
               className="flex items-center gap-1 cursor-pointer text-xs px-2 py-1 bg-purple-900/50 text-purple-300 border border-purple-500/30 hover:bg-purple-900/70"
-              onClick={() => setTimeFilter("12m")}
+              onClick={() => setPeriod("1y")}
             >
-              {timeFilter === "3m" ? "3 meses" : "6 meses"} <X className="w-2.5 h-2.5" />
+              {{
+                "1m": "1 mês",
+                "3m": "3 meses",
+                "6m": "6 meses",
+                "1y": "1 ano",
+                "3y": "3 anos",
+                "5y": "5 anos",
+                "all": "Todo o período"
+              }[period]} <X className="w-2.5 h-2.5" />
             </Badge>
           )}
+
           <span className="text-xs text-slate-500">
             — {filteredRegions.length} {filteredRegions.length === 1 ? "região" : "regiões"} encontrada{filteredRegions.length !== 1 ? "s" : ""}
           </span>
@@ -432,7 +485,7 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={240}>
-              <AreaChart data={filteredTimeData}>
+              <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%"  stopColor="#3b82f6" stopOpacity={0.4} />
@@ -456,7 +509,7 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={240}>
-              <LineChart data={filteredTimeData}>
+              <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" {...grid} />
                 <XAxis dataKey="month" tick={tick} />
                 <YAxis tick={tick} domain={[0, 6]} />
@@ -475,7 +528,7 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={filteredTimeData}>
+              <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" {...grid} />
                 <XAxis dataKey="month" tick={tick} />
                 <YAxis tick={tick} />
