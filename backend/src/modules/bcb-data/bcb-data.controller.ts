@@ -1,12 +1,15 @@
 import { Controller, Get, Post, Body, Query } from '@nestjs/common';
+import * as monteCarloService from './monte-carlo.service';
 
 @Controller('api/opportunities')
 export class BcbDataController {
-  
+  constructor(
+    private readonly monteCarloService: monteCarloService.MonteCarloService,
+  ) {}
+
   // ========================================================
   // 1. Rota do mapa consumida pelo BrazilMap.tsx
   // ========================================================
-
   @Get('heatmap')
   getHeatmapData(
     @Query('estado') estado?: string,
@@ -28,21 +31,19 @@ export class BcbDataController {
   // ========================================================
   // 2. Rota dos KPIS -- cards superiores no dashboard.tsx
   // ========================================================
-
   @Get('kpis')
   getKpis(@Query('estado') estado?: string) {
     return {
-      volumeConcessoes: "R$ 4.2 Bi",
-      inadimplenciaMedia: "4.8%",
-      crescimentoAno: "+15.3%",
-      riscoGeral: estado === 'SP' ? "Baixo" : "Médio"
+      volumeConcessoes: 'R$ 4.2 Bi',
+      inadimplenciaMedia: '4.8%',
+      crescimentoAno: '+15.3%',
+      riscoGeral: estado === 'SP' ? 'Baixo' : 'Médio',
     };
   }
 
   // ========================================================
   // 3. Rota do gráfico de evolução -- LineChart do dashboard
   // ========================================================
-
   @Get('evolution')
   getEvolutionChart(@Query('estado') estado?: string) {
     return [
@@ -58,28 +59,53 @@ export class BcbDataController {
   // ========================================================
   // 4. Rota de ranking regional tabela de oportunidades
   // ========================================================
-
   @Get('ranking')
   getRanking() {
     return [
-      { id: 1, estado: 'SP', score: 98, populacaoDesbancarizada: "2.1M", status: 'Excelente' },
-      { id: 2, estado: 'CE', score: 85, populacaoDesbancarizada: "1.5M", status: 'Muito Boa' },
-      { id: 3, estado: 'PR', score: 79, populacaoDesbancarizada: "900K", status: 'Boa' },
-      { id: 4, estado: 'MG', score: 72, populacaoDesbancarizada: "1.2M", status: 'Boa' },
+      {
+        id: 1,
+        estado: 'SP',
+        score: 98,
+        populacaoDesbancarizada: '2.1M',
+        status: 'Excelente',
+      },
+      {
+        id: 2,
+        estado: 'CE',
+        score: 85,
+        populacaoDesbancarizada: '1.5M',
+        status: 'Muito Boa',
+      },
+      {
+        id: 3,
+        estado: 'PR',
+        score: 79,
+        populacaoDesbancarizada: '900K',
+        status: 'Boa',
+      },
+      {
+        id: 4,
+        estado: 'MG',
+        score: 72,
+        populacaoDesbancarizada: '1.2M',
+        status: 'Boa',
+      },
     ];
   }
 
   // ========================================================
   // 5. Rota do simulador -- MonteCarloSimulation.tsx
   // ========================================================
-
   @Post('simulate')
-  simulateMonteCarlo(@Body() params: { estado: string; taxaSelicEst: number; desempregoEst: number }) {
-    // na prox sprint essa bomba vai chamar o microsserviço do python, por enquanto retorna os cenários mockados pro figma
-    return {
-      cenarioOtimista: { risco: "3.2%", retornoEsperado: "R$ 1.5 Bi" },
-      cenarioBase: { risco: "4.5%", retornoEsperado: "R$ 1.1 Bi" },
-      cenarioPessimista: { risco: "6.8%", retornoEsperado: "R$ 700 Mi" }
+  simulateMonteCarlo(@Body() params: monteCarloService.SimulationParams) {
+    const safeParams = {
+      iterations: params.iterations || 1000,
+      investmentValue: params.investmentValue || 1000000,
+      avgReturn: params.avgReturn || 12,
+      volatility: params.volatility || 3.5,
+      region: params.region || 'BR',
     };
+
+    return this.monteCarloService.simulate(safeParams);
   }
 }
