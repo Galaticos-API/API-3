@@ -6,6 +6,7 @@
 
 ```bash
 cd backend_python
+pip install -r requirements.txt
 python criar_banco_dados.py
 ```
 
