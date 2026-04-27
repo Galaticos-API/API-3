@@ -71,7 +71,10 @@ def buscar_serie_bcb(codigo, data_inicial=None, max_tentativas=3):
     """
     if data_inicial is None:
         hoje = datetime.now()
-        dez_anos_atras = hoje.replace(year=hoje.year - 10)
+        try:
+            dez_anos_atras = hoje.replace(year=hoje.year - 10)
+        except ValueError:
+            dez_anos_atras = hoje.replace(year=hoje.year - 10, day=28)
         data_inicial = dez_anos_atras.strftime("%d/%m/%Y")
 
     url = BCB_URL.format(codigo=codigo)
