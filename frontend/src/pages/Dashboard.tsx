@@ -116,11 +116,12 @@ export function Dashboard() {
   const fmtNumber = (v: number) =>
     new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 }).format(v);
 
-  const grid = { stroke: "rgba(255,255,255,0.05)" };
-  const tick  = { fill: "#94a3b8", fontSize: 11 };
+  const grid = { stroke: "rgba(0,0,0,0.05)" };
+  const tick  = { fill: "#64748b", fontSize: 11 };
   const ttip  = {
-    contentStyle: { backgroundColor: "#111827", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#f1f5f9" },
-    labelStyle: { color: "#94a3b8" },
+    contentStyle: { backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, color: "#1e293b", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" },
+    labelStyle: { color: "#64748b", fontWeight: 500 },
+    itemStyle: { color: "#0f172a", fontWeight: 600 }
   };
 
   const selectedRegion = selectedState ? regionsData.find(r => r.state === selectedState) : null;
@@ -156,13 +157,13 @@ export function Dashboard() {
 
   const detailItems = selectedRegion ? [
     { label: "Score", value: selectedRegion.score.toFixed(1), cls: "text-blue-400 font-bold" },
-    { label: "Potencial",    value: fmtCurrency(selectedRegion.potencialCredito), cls: "text-white font-bold" },
-    { label: "Macrorregião", value: MACRO_REGIONS[getMacroRegion(selectedRegion.state) ?? ""]?.label ?? "—", cls: "text-slate-200" },
-    { label: "População",    value: fmtNumber(selectedRegion.population), cls: "text-slate-200" },
-    { label: "Bancarização", value: `${selectedRegion.bancarizacao}%`, cls: "text-slate-200" },
+    { label: "Potencial",    value: fmtCurrency(selectedRegion.potencialCredito), cls: "text-foreground font-bold" },
+    { label: "Macrorregião", value: MACRO_REGIONS[getMacroRegion(selectedRegion.state) ?? ""]?.label ?? "—", cls: "text-muted-foreground" },
+    { label: "População",    value: fmtNumber(selectedRegion.population), cls: "text-muted-foreground" },
+    { label: "Bancarização", value: `${selectedRegion.bancarizacao}%`, cls: "text-muted-foreground" },
     { label: "Inadimplência",value: `${selectedRegion.inadimplencia}%`,
       cls: selectedRegion.inadimplencia > 5 ? "text-red-400 font-medium" : "text-green-400 font-medium" },
-    { label: "Renda Média",  value: fmtCurrency(selectedRegion.rendaMedia), cls: "text-slate-200" },
+    { label: "Renda Média",  value: fmtCurrency(selectedRegion.rendaMedia), cls: "text-muted-foreground" },
   ] : [];
 
   return (
@@ -171,20 +172,20 @@ export function Dashboard() {
       {/* ── Header ───────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-white">Dashboard de Oportunidades</h2>
-          <p className="text-slate-400 mt-1">Análise territorial de potencial de crédito inclusivo</p>
+          <h2 className="text-3xl font-bold text-vocedm-navy">Dashboard de Oportunidades</h2>
+          <p className="text-muted-foreground mt-1">Análise territorial de potencial de crédito inclusivo</p>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
           {/* Período */}
           <div className="flex items-center gap-2">
-            <label className="text-sm text-slate-400">Período:</label>
+            <label className="text-sm text-muted-foreground">Período:</label>
             {/* refatoração do Select para usar o novo hook */}
             <Select value={period} onValueChange={(value) => setPeriod(value as TimePeriod)}>
-              <SelectTrigger className="w-32 bg-[#111827] border-white/10 text-white">
+              <SelectTrigger className="w-32 bg-white border-input text-foreground">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-[#111827] border-white/10 text-white">
+              <SelectContent className="bg-white border-input text-foreground">
                 <SelectItem value="1m">1 mês</SelectItem>
                 <SelectItem value="3m">3 meses</SelectItem>
                 <SelectItem value="6m">6 meses</SelectItem>
@@ -198,10 +199,10 @@ export function Dashboard() {
 
           {/* Macrorregião */}
           <div className="flex items-center gap-2">
-            <label className="text-sm text-slate-400">Região:</label>
+            <label className="text-sm text-muted-foreground">Região:</label>
             <Select value={selectedMacroRegion ?? "all"} onValueChange={handleMacroChange}>
-              <SelectTrigger className="w-40 bg-[#111827] border-white/10 text-white"><SelectValue /></SelectTrigger>
-              <SelectContent className="bg-[#111827] border-white/10 text-white">
+              <SelectTrigger className="w-40 bg-white border-input text-foreground"><SelectValue /></SelectTrigger>
+              <SelectContent className="bg-white border-input text-foreground">
                 <SelectItem value="all">Todas</SelectItem>
                 {Object.entries(MACRO_REGIONS).map(([key, { label, color }]) => (
                   <SelectItem key={key} value={key}>
@@ -217,10 +218,10 @@ export function Dashboard() {
 
           {/* Estado (cascata) */}
           <div className="flex items-center gap-2">
-            <label className="text-sm text-slate-400">Estado:</label>
+            <label className="text-sm text-muted-foreground">Estado:</label>
             <Select value={selectedState ?? "all"} onValueChange={v => setSelectedState(v === "all" ? undefined : v)}>
-              <SelectTrigger className="w-36 bg-[#111827] border-white/10 text-white"><SelectValue /></SelectTrigger>
-              <SelectContent className="bg-[#111827] border-white/10 text-white">
+              <SelectTrigger className="w-36 bg-white border-input text-foreground"><SelectValue /></SelectTrigger>
+              <SelectContent className="bg-white border-input text-foreground">
                 <SelectItem value="all">Todos</SelectItem>
                 {availableStates.map(s => (
                   <SelectItem key={s} value={s}>{s}</SelectItem>
@@ -245,7 +246,7 @@ export function Dashboard() {
       {/* ── Filtros Ativos (badges visuais) ─────────────────────────────── */}
       {hasActiveFilters && (
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-slate-500 flex items-center gap-1">
+          <span className="text-xs text-muted-foreground flex items-center gap-1">
             <MapPin className="w-3 h-3" /> Filtros ativos:
           </span>
           {selectedMacroRegion && (
@@ -286,7 +287,7 @@ export function Dashboard() {
             </Badge>
           )}
 
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-muted-foreground">
             — {filteredRegions.length} {filteredRegions.length === 1 ? "região" : "regiões"} encontrada{filteredRegions.length !== 1 ? "s" : ""}
           </span>
         </div>
@@ -303,8 +304,8 @@ export function Dashboard() {
               onClick={() => handleMacroChange(isActive ? "all" : key)}
               className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border transition-all duration-200 ${
                 isActive
-                  ? "text-white shadow-lg scale-105"
-                  : "bg-[#111827] text-slate-400 border-white/10 hover:border-white/20 hover:text-slate-200"
+                  ? "text-foreground shadow-lg scale-105"
+                  : "bg-white text-muted-foreground border-border hover:border-white/20 hover:text-muted-foreground"
               }`}
               style={isActive ? { backgroundColor: `${color}25`, borderColor: `${color}60`, color } : {}}
             >
@@ -331,8 +332,8 @@ export function Dashboard() {
             label: "Potencial Total",
             value: fmtCurrency(filteredRegions.reduce((s, r) => s + r.potencialCredito, 0)),
             sub: `↗ +${kpiData.crescimentoMensal}% vs mês anterior`,
-            icon: <DollarSign className="w-5 h-5 text-white/80" />,
-            grad: "from-green-700 to-green-500",
+            icon: <DollarSign className="w-5 h-5 opacity-80" />,
+            grad: "bg-vocedm-blue text-white",
           },
           {
             label: "Regiões Mapeadas",
@@ -340,42 +341,42 @@ export function Dashboard() {
             sub: selectedMacroRegion
               ? `na região ${MACRO_REGIONS[selectedMacroRegion].label}`
               : "Territórios analisados",
-            icon: <Target className="w-5 h-5 text-white/80" />,
-            grad: "from-blue-700 to-blue-400",
+            icon: <Target className="w-5 h-5 opacity-80" />,
+            grad: "bg-vocedm-teal text-vocedm-navy",
           },
           {
             label: "Ticket Médio",
             value: fmtCurrency(kpiData.ticketMedioNacional),
             sub: "↗ +4.2% vs trimestre anterior",
-            icon: <TrendingUp className="w-5 h-5 text-white/80" />,
-            grad: "from-purple-700 to-purple-400",
+            icon: <TrendingUp className="w-5 h-5 opacity-80" />,
+            grad: "bg-vocedm-salmon text-vocedm-navy",
           },
           {
             label: "População Alvo",
             value: fmtNumber(filteredRegions.reduce((s, r) => s + r.population, 0)),
             sub: "Habitantes nas regiões",
-            icon: <Users className="w-5 h-5 text-white/80" />,
-            grad: "from-orange-600 to-orange-400",
+            icon: <Users className="w-5 h-5 opacity-80" />,
+            grad: "bg-[#F1EFFF] text-vocedm-navy",
           },
         ].map(k => (
-          <div key={k.label} className={`rounded-2xl p-5 relative overflow-hidden bg-gradient-to-br ${k.grad}`}>
-            <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full bg-white/10" />
+          <div key={k.label} className={`rounded-2xl p-5 relative overflow-hidden ${k.grad}`}>
+            <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full bg-black/5" />
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-semibold text-white/90">{k.label}</span>
+              <span className="text-sm font-semibold opacity-90">{k.label}</span>
               {k.icon}
             </div>
-            <div className="text-3xl font-bold text-white leading-none mb-1">{k.value}</div>
-            <p className="text-xs text-white/80">{k.sub}</p>
+            <div className="text-3xl font-bold leading-none mb-1">{k.value}</div>
+            <p className="text-xs opacity-80">{k.sub}</p>
           </div>
         ))}
       </div>
 
       {/* ── Mapa + Ranking ───────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-[#111827] border-white/5">
+        <Card >
           <CardHeader>
-            <CardTitle className="text-white">Mapa do Brasil</CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardTitle>Mapa do Brasil</CardTitle>
+            <CardDescription>
               {selectedMacroRegion
                 ? `Filtrando: ${MACRO_REGIONS[selectedMacroRegion].label} — clique em um estado`
                 : "Clique em um estado para ver os indicadores"}
@@ -390,10 +391,10 @@ export function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-[#111827] border-white/5">
+        <Card >
           <CardHeader>
-            <CardTitle className="text-white">Ranking Regional</CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardTitle>Ranking Regional</CardTitle>
+            <CardDescription>
               {selectedMacroRegion
                 ? `Top regiões — ${MACRO_REGIONS[selectedMacroRegion].label}`
                 : "Top regiões por potencial de crédito"}
@@ -406,7 +407,7 @@ export function Dashboard() {
                 {allRegionsSorted.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center gap-2 text-center pt-10">
                     <span className="text-2xl">🔍</span>
-                    <p className="text-[11px] text-slate-500">Nenhuma região encontrada para os filtros selecionados.</p>
+                    <p className="text-[11px] text-muted-foreground">Nenhuma região encontrada para os filtros selecionados.</p>
                   </div>
                 ) : (
                   allRegionsSorted.map((region, index) => {
@@ -415,26 +416,26 @@ export function Dashboard() {
                     return (
                       <div key={region.id}
                         onClick={() => handleStateClick(region.state)}
-                        className={`flex items-center gap-2 p-2.5 rounded-xl cursor-pointer transition-colors border-b border-white/5 last:border-0 ${selectedState === region.state ? "bg-blue-500/15" : "hover:bg-white/5"}`}
+                        className={`flex items-center gap-2 p-2.5 rounded-xl cursor-pointer transition-colors border-b border-border last:border-0 ${selectedState === region.state ? "bg-vocedm-blue/10" : "hover:bg-slate-50"}`}
                       >
                         <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] text-white flex-shrink-0 ${
-                          index === 0 ? "bg-orange-500" : index === 1 ? "bg-slate-500" : index === 2 ? "bg-amber-800" : "bg-blue-900"
+                          index === 0 ? "bg-[#f97316]" : index === 1 ? "bg-slate-500" : index === 2 ? "bg-amber-700" : "bg-vocedm-blue"
                         }`}>
                           {index + 1}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1">
-                            <p className="font-semibold text-white text-[11px] truncate">{region.name}</p>
-                            <Badge className="text-[9px] px-1 py-0 bg-blue-900/50 text-blue-300 border border-blue-500/30 hover:bg-blue-900/50 flex-shrink-0">
+                            <p className="font-semibold text-foreground text-[11px] truncate">{region.name}</p>
+                            <Badge className="text-[9px] px-1 py-0 bg-[#F1EFFF] text-vocedm-blue border border-vocedm-blue/20 hover:bg-[#E2DDF5] flex-shrink-0">
                               {region.state}
                             </Badge>
                           </div>
                           <div className="flex items-center gap-1 mt-0.5">
                             <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: macroColor }} />
-                            <div className="text-[10px] text-slate-400">Inadimp: {region.inadimplencia}%</div>
+                            <div className="text-[10px] text-muted-foreground">Inadimp: {region.inadimplencia}%</div>
                           </div>
                         </div>
-                        <div className="font-bold text-xs text-blue-400 flex-shrink-0">{region.score.toFixed(1)}</div>
+                        <div className="font-bold text-xs text-vocedm-blue flex-shrink-0">{region.score.toFixed(1)}</div>
                       </div>
                     );
                   })
@@ -450,15 +451,15 @@ export function Dashboard() {
                   <>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-1.5">
-                        <Badge className="bg-blue-900/50 text-blue-300 border border-blue-500/30 text-xs">{selectedRegion.state}</Badge>
-                        <span className="text-white text-sm font-semibold truncate">{selectedRegion.name}</span>
+                        <Badge className="bg-[#F1EFFF] text-vocedm-blue border border-vocedm-blue/20 text-xs">{selectedRegion.state}</Badge>
+                        <span className="text-foreground text-sm font-semibold truncate">{selectedRegion.name}</span>
                       </div>
-                      <button onClick={() => setSelectedState(undefined)} className="text-slate-500 hover:text-white text-xs transition-colors flex-shrink-0 ml-1">✕</button>
+                      <button onClick={() => setSelectedState(undefined)} className="text-muted-foreground hover:text-foreground text-xs transition-colors flex-shrink-0 ml-1">✕</button>
                     </div>
                     <div className="flex flex-col gap-1.5">
                       {detailItems.map(item => (
-                        <div key={item.label} className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2">
-                          <span className="text-slate-400 text-xs">{item.label}</span>
+                        <div key={item.label} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
+                          <span className="text-muted-foreground text-xs">{item.label}</span>
                           <span className={`text-sm ${item.cls}`}>{item.value}</span>
                         </div>
                       ))}
@@ -467,7 +468,7 @@ export function Dashboard() {
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center gap-2 text-center">
                     <span className="text-3xl">👆</span>
-                    <p className="text-[10px] text-slate-500 leading-relaxed px-2">Clique em uma região para ver os detalhes</p>
+                    <p className="text-[10px] text-muted-foreground leading-relaxed px-2">Clique em uma região para ver os detalhes</p>
                   </div>
                 )}
               </div>
@@ -478,10 +479,10 @@ export function Dashboard() {
 
       {/* ── Gráficos ─────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-[#111827] border-white/5">
+        <Card >
           <CardHeader>
-            <CardTitle className="text-white">Evolução de Concessões</CardTitle>
-            <CardDescription className="text-slate-400">Volume de operações ao longo do tempo</CardDescription>
+            <CardTitle>Evolução de Concessões</CardTitle>
+            <CardDescription>Volume de operações ao longo do tempo</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={240}>
@@ -502,10 +503,10 @@ export function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-[#111827] border-white/5">
+        <Card >
           <CardHeader>
-            <CardTitle className="text-white">Taxa de Inadimplência</CardTitle>
-            <CardDescription className="text-slate-400">Evolução do índice (%)</CardDescription>
+            <CardTitle>Taxa de Inadimplência</CardTitle>
+            <CardDescription>Evolução do índice (%)</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={240}>
@@ -521,10 +522,10 @@ export function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-[#111827] border-white/5">
+        <Card >
           <CardHeader>
-            <CardTitle className="text-white">Ticket Médio</CardTitle>
-            <CardDescription className="text-slate-400">Valor médio das operações (R$)</CardDescription>
+            <CardTitle>Ticket Médio</CardTitle>
+            <CardDescription>Valor médio das operações (R$)</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={240}>
@@ -539,10 +540,10 @@ export function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-[#111827] border-white/5">
+        <Card >
           <CardHeader>
-            <CardTitle className="text-white">Distribuição por Score</CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardTitle>Distribuição por Score</CardTitle>
+            <CardDescription>
               {selectedMacroRegion
                 ? `Classificação — ${MACRO_REGIONS[selectedMacroRegion].label}`
                 : "Classificação das regiões analisadas"}
@@ -569,12 +570,12 @@ export function Dashboard() {
       </div>
 
       {/* ── Tabela ───────────────────────────────────────────────────────── */}
-      <Card className="bg-[#111827] border-white/5">
+      <Card >
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-white">Detalhamento Regional</CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardTitle>Detalhamento Regional</CardTitle>
+              <CardDescription>
                 Indicadores completos — {filteredRegions.length} {filteredRegions.length === 1 ? "região" : "regiões"}
                 {selectedMacroRegion && ` · ${MACRO_REGIONS[selectedMacroRegion].label}`}
                 {selectedState && ` · ${selectedState}`}
@@ -586,16 +587,16 @@ export function Dashboard() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-white/5">
+                <tr className="border-b border-border">
                   {["Região", "UF", "Macrorregião", "Score", "População", "Bancarização", "Inadimplência", "Renda Média", "Potencial"].map(h => (
-                    <th key={h} className="text-left py-3 px-4 text-xs font-medium text-slate-400">{h}</th>
+                    <th key={h} className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {allRegionsSorted.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-12 text-center text-slate-500 text-sm">
+                    <td colSpan={9} className="py-12 text-center text-muted-foreground text-sm">
                       Nenhuma região encontrada para os filtros selecionados.
                     </td>
                   </tr>
@@ -606,28 +607,28 @@ export function Dashboard() {
                     return (
                       <tr key={r.id}
                         onClick={() => handleStateClick(r.state)}
-                        className={`border-b border-white/5 last:border-0 cursor-pointer transition-colors ${selectedState === r.state ? "bg-blue-500/10" : "hover:bg-white/[.03]"}`}
+                        className={`border-b border-border last:border-0 cursor-pointer transition-colors ${selectedState === r.state ? "bg-vocedm-blue/10" : "hover:bg-slate-50"}`}
                       >
-                        <td className="py-3 px-4 text-sm text-white font-medium">{r.name}</td>
+                        <td className="py-3 px-4 text-sm text-foreground font-medium">{r.name}</td>
                         <td className="py-3 px-4">
-                          <Badge className="text-xs bg-blue-900/50 text-blue-300 border border-blue-500/30 hover:bg-blue-900/50">{r.state}</Badge>
+                          <Badge className="text-xs bg-[#F1EFFF] text-vocedm-blue border border-vocedm-blue/20 hover:bg-[#E2DDF5]">{r.state}</Badge>
                         </td>
                         <td className="py-3 px-4">
                           {macroInfo && (
-                            <span className="flex items-center gap-1.5 text-xs text-slate-300">
+                            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                               <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: macroInfo.color }} />
                               {macroInfo.label}
                             </span>
                           )}
                         </td>
-                        <td className="py-3 px-4 text-sm font-bold text-blue-400">{r.score.toFixed(1)}</td>
-                        <td className="py-3 px-4 text-sm text-slate-300">{fmtNumber(r.population)}</td>
-                        <td className="py-3 px-4 text-sm text-slate-300">{r.bancarizacao}%</td>
+                        <td className="py-3 px-4 text-sm font-bold text-vocedm-blue">{r.score.toFixed(1)}</td>
+                        <td className="py-3 px-4 text-sm text-muted-foreground">{fmtNumber(r.population)}</td>
+                        <td className="py-3 px-4 text-sm text-muted-foreground">{r.bancarizacao}%</td>
                         <td className="py-3 px-4 text-sm">
-                          <span className={r.inadimplencia < 4 ? "text-green-400" : "text-red-400"}>{r.inadimplencia}%</span>
+                          <span className={r.inadimplencia < 4 ? "text-green-600 font-medium" : "text-red-500 font-medium"}>{r.inadimplencia}%</span>
                         </td>
-                        <td className="py-3 px-4 text-sm text-slate-300">{fmtCurrency(r.rendaMedia)}</td>
-                        <td className="py-3 px-4 text-sm font-bold text-white">{fmtCurrency(r.potencialCredito)}</td>
+                        <td className="py-3 px-4 text-sm text-muted-foreground">{fmtCurrency(r.rendaMedia)}</td>
+                        <td className="py-3 px-4 text-sm font-bold text-foreground">{fmtCurrency(r.potencialCredito)}</td>
                       </tr>
                     );
                   })
