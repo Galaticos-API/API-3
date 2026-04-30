@@ -110,7 +110,7 @@ export function Login() {
     <div className="min-h-screen flex">
 
       {/* ── Painel Esquerdo — Identidade DM ─────────────────────────────── */}
-      <div className="hidden lg:flex flex-col justify-between w-[58%] bg-primary px-14 py-12">
+      <div className="hidden lg:flex flex-col justify-between w-[58%] bg-vocedm-blue px-14 py-12">
 
         {/* Logo */}
         <div>
@@ -248,7 +248,8 @@ export function Login() {
               <Button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="w-full h-10 font-semibold"
+                variant="vocedmTeal"
+                className="w-full h-12 font-bold"
                 size="lg"
               >
                 {loading ? (

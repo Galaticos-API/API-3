@@ -10,11 +10,11 @@ interface BrazilMapProps {
 }
 
 function getScoreColor(score: number) {
-  if (score >= 85) return { fill: "#f97316", stroke: "#ea580c" };
-  if (score >= 75) return { fill: "#3b82f6", stroke: "#2563eb" };
-  if (score >= 65) return { fill: "#22c55e", stroke: "#16a34a" };
-  if (score > 0) return { fill: "#334155", stroke: "#1e293b" };
-  return { fill: "#1e293b", stroke: "#0f172a" };
+  if (score >= 85) return { fill: "#202AD0", stroke: "#1A22A8" }; // DM Blue
+  if (score >= 75) return { fill: "#4A53D8", stroke: "#3E46C1" }; // Lighter Blue 1
+  if (score >= 65) return { fill: "#747CE0", stroke: "#6168C2" }; // Lighter Blue 2
+  if (score > 0) return { fill: "#9EA5E8", stroke: "#858BC6" }; // Lighter Blue 3
+  return { fill: "#C8CCF0", stroke: "#A5A9C9" }; // Empty/Pale
 }
 
 const STATE_CENTROIDS: Record<string, [number, number]> = {
@@ -113,7 +113,7 @@ export function BrazilMap({ data, selectedState, onStateClick }: BrazilMapProps)
                 fontFamily: "inherit",
                 fontSize: 9,
                 fontWeight: 700,
-                fill: "#ffffff",
+                fill: "#1C1B1F",
                 pointerEvents: "none",
                 opacity: 0.9,
               }}
@@ -125,14 +125,14 @@ export function BrazilMap({ data, selectedState, onStateClick }: BrazilMapProps)
       </ComposableMap>
 
       {/* Legenda */}
-      <div className="flex items-center justify-center gap-4 flex-wrap -mt-2">
+      <div className="flex items-center justify-center gap-4 flex-wrap mt-4">
         {[
-          { color: "#f97316", label: "Top (≥85)" },
-          { color: "#3b82f6", label: "Bom (75–84)" },
-          { color: "#22c55e", label: "Médio (65–74)" },
-          { color: "#334155", label: "Regular (<65)" },
+          { color: "#202AD0", label: "Top (≥85)" },
+          { color: "#4A53D8", label: "Bom (75–84)" },
+          { color: "#747CE0", label: "Médio (65–74)" },
+          { color: "#9EA5E8", label: "Regular (<65)" },
         ].map(({ color, label }) => (
-          <div key={label} className="flex items-center gap-1.5 text-xs text-slate-400">
+          <div key={label} className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
             <div className="w-3 h-3 rounded-sm" style={{ background: color }} />
             {label}
           </div>
