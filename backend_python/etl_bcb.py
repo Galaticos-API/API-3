@@ -62,11 +62,21 @@ def conectar_banco():
     return conn
 
 
-def buscar_serie_bcb(codigo, data_inicial="01/01/2015"):
+def buscar_serie_bcb(codigo, data_inicial=None, max_tentativas=3):
     """
     Busca dados de uma série no SGS do BCB.
     Retorna lista de dicts: [{"data": "01/01/2023", "valor": "3.5"}, ...]
+    Por padrão, coleta os últimos 10 anos até a data atual.
+    Possui retry automático com backoff exponencial para erros transientes (502, 503, 504).
     """
+    if data_inicial is None:
+        hoje = datetime.now()
+        try:
+            dez_anos_atras = hoje.replace(year=hoje.year - 10)
+        except ValueError:
+            dez_anos_atras = hoje.replace(year=hoje.year - 10, day=28)
+        data_inicial = dez_anos_atras.strftime("%d/%m/%Y")
+
     url = BCB_URL.format(codigo=codigo)
     params = {
         "formato": "json",
@@ -74,18 +84,42 @@ def buscar_serie_bcb(codigo, data_inicial="01/01/2015"):
         "dataFinal": datetime.now().strftime("%d/%m/%Y")
     }
 
-    try:
-        resposta = requests.get(url, params=params, timeout=15)
-        resposta.raise_for_status()
-        dados = resposta.json()
-        print(f"  Serie {codigo}: {len(dados)} registros encontrados")
-        return dados
-    except requests.exceptions.HTTPError as e:
-        print(f"  ERRO HTTP na série {codigo}: {e}")
-        return []
-    except Exception as e:
-        print(f"  ERRO na série {codigo}: {e}")
-        return []
+    for tentativa in range(1, max_tentativas + 1):
+        try:
+            resposta = requests.get(url, params=params, timeout=30)
+            resposta.raise_for_status()
+            dados = resposta.json()
+            print(f"  Serie {codigo}: {len(dados)} registros encontrados")
+            return dados
+        except requests.exceptions.HTTPError as e:
+            status_code = e.response.status_code if e.response is not None else 0
+            if status_code in (502, 503, 504, 429) and tentativa < max_tentativas:
+                espera = 2 ** tentativa  # 2s, 4s, 8s...
+                print(f"  ERRO HTTP {status_code} na série {codigo} (tentativa {tentativa}/{max_tentativas}). Retentando em {espera}s...")
+                time.sleep(espera)
+            else:
+                print(f"  ERRO HTTP na série {codigo}: {e}")
+                return []
+        except requests.exceptions.ConnectionError as e:
+            if tentativa < max_tentativas:
+                espera = 2 ** tentativa
+                print(f"  ERRO de conexão na série {codigo} (tentativa {tentativa}/{max_tentativas}). Retentando em {espera}s...")
+                time.sleep(espera)
+            else:
+                print(f"  ERRO de conexão na série {codigo}: {e}")
+                return []
+        except requests.exceptions.Timeout as e:
+            if tentativa < max_tentativas:
+                espera = 2 ** tentativa
+                print(f"  TIMEOUT na série {codigo} (tentativa {tentativa}/{max_tentativas}). Retentando em {espera}s...")
+                time.sleep(espera)
+            else:
+                print(f"  TIMEOUT na série {codigo}: {e}")
+                return []
+        except Exception as e:
+            print(f"  ERRO na série {codigo}: {e}")
+            return []
+    return []
 
 
 def converter_data_bcb(data_str):
