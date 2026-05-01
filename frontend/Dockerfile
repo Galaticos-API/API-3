@@ -1,13 +1,13 @@
 # Estágio 1: Build da aplicação React/Vite
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
 # Copiar os arquivos de lock e package
-COPY package*.json ./
+COPY package.json package-lock.json ./
 
-# Instalar as dependências
-RUN npm install --legacy-peer-deps
+# Instalar as dependências de forma reproduzível
+RUN npm ci
 
 # Copiar o restante da aplicação e realizar o build estático
 COPY . .
