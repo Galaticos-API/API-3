@@ -1,0 +1,20 @@
+# Cache e Ambientes Virtuais Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+.pytest_cache/
+
+# Logs e Variáveis de Ambiente
+*.log
+.env
+.env.*
+
+# IDEs e SO
+.vscode/
+.idea/
+.DS_Store
+
+# Docker
+Dockerfile
+.dockerignore
