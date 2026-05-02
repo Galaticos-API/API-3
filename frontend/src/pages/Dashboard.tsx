@@ -1,143 +1,110 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
-import { BrazilMap } from "../components/BrazilMap";
-import { DashboardChart } from "../components/DashboardChart";
-import { BarChartPotential } from "../components/BarChartPotential";
-import { DoughnutPublic } from "../components/DoughnutPublic";
-
-import { regionsData, timeSeriesData, kpiData } from "../data/mockData";
-import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
-} from "recharts";
-import { TrendingUp, Users, DollarSign, Target, X } from "lucide-react";
 import { Badge } from "../components/ui/badge";
-import { useTimeFilter, type TimePeriod } from "../hooks/useTimeFilter";
+import { BrazilMap } from "../components/BrazilMap";
+import { X, RefreshCw, AlertTriangle } from "lucide-react";
 
-// Mapeamento de Macroregiões
+import { api } from "../services/api";
+import { useGrafico } from "../hooks/useGrafico";
+import { ChartCreditoSfn } from "../components/charts/ChartCreditoSfn";
+import { ChartMacroContexto } from "../components/charts/ChartMacroContexto";
+import { ChartInadimplenciaRegional } from "../components/charts/ChartInadimplenciaRegional";
+import { ChartHeatmapEstados } from "../components/charts/ChartHeatmapEstados";
+import { ChartScatterPfPj } from "../components/charts/ChartScatterPfPj";
+// import { ChartEstudoEstado } from "../components/charts/ChartEstudoEstado";
+import { ChartScoreOportunidade } from "../components/charts/ChartScoreOportunidade";
+import { ChartMonteCarlo } from "../components/charts/ChartMonteCarlo";
+
+// ─── Constantes ──────────────────────────────────────────────────────────────
 const MACRO_REGIONS: Record<string, { label: string; states: string[]; color: string }> = {
-  norte: { label: "Norte", states: ["AC","AP","AM","PA","RO","RR","TO"], color: "#22c55e" },
-  nordeste: { label: "Nordeste", states: ["AL","BA","CE","MA","PB","PE","PI","RN","SE"], color: " #3b82f6" },
-  centro_oeste: { label: "Centro-Oeste", states: ["DF","GO","MS","MT"], color: "#a855f7" },
-  sudeste: { label: "Sudeste", states: ["ES","MG","RJ","SP"], color: "#f97316" },
-  sul: { label: "Sul", states: ["PR","RS","SC"], color: "#ef4444" },
+  norte: { label: "Norte", states: ["AC", "AP", "AM", "PA", "RO", "RR", "TO"], color: "#22c55e" },
+  nordeste: { label: "Nordeste", states: ["AL", "BA", "CE", "MA", "PB", "PE", "PI", "RN", "SE"], color: "#3b82f6" },
+  centro_oeste: { label: "Centro-Oeste", states: ["DF", "GO", "MS", "MT"], color: "#a855f7" },
+  sudeste: { label: "Sudeste", states: ["ES", "MG", "RJ", "SP"], color: "#f97316" },
+  sul: { label: "Sul", states: ["PR", "RS", "SC"], color: "#ef4444" },
 };
 
-// Retorna a macrorregião de um UF
-function getMacroRegion(uf: string): string | undefined {
+function getMacroRegion(uf: string) {
   return Object.entries(MACRO_REGIONS).find(([, v]) => v.states.includes(uf))?.[0];
 }
 
+// ─── Componente auxiliar: Card de gráfico com loading/erro ───────────────────
+function ChartCard({
+  title, description, loading, error, refetch, children, colSpan = 1,
+}: {
+  title: string;
+  description?: string;
+  loading: boolean;
+  error: string | null;
+  refetch: () => void;
+  children: React.ReactNode;
+  colSpan?: 1 | 2;
+}) {
+  return (
+    <Card className={colSpan === 2 ? "lg:col-span-2" : ""}>
+      <CardHeader className="pb-2">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+            {description && <CardDescription className="text-m mt-0.5">{description}</CardDescription>}
+          </div>
+          <button onClick={refetch} className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0" title="Recarregar">
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+          </button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex items-center justify-center h-52 gap-2 text-muted-foreground text-sm">
+            <RefreshCw className="w-4 h-4 animate-spin" />
+            Carregando dados do servidor...
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center h-52 gap-2 text-center px-4">
+            <AlertTriangle className="w-6 h-6 text-amber-500" />
+            <p className="text-sm text-muted-foreground">{error}</p>
+            <button onClick={refetch} className="text-xs text-blue-500 hover:underline">Tentar novamente</button>
+          </div>
+        ) : children}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
 export function Dashboard() {
   const [selectedState, setSelectedState] = useState<string | undefined>();
   const [selectedMacroRegion, setSelectedMacroRegion] = useState<string | undefined>();
 
-  const { period, setPeriod, start_date, end_date } = useTimeFilter("1y");  // instancia filtro genérico
-  const [chartData, setChartData] = useState<any[]>([]);  // vai armazenar os dados reais que virão do python (usando any por enquanto)
+  // ── Dados da API ────────────────────────────────────────────────────────────
+  const grf01 = useGrafico(() => api.graficos.creditoSfn(10), []);
+  const grf02 = useGrafico(() => api.graficos.macroContexto(5), []);
+  const grf03 = useGrafico(() => api.graficos.inadimplenciaRegional(), []);
+  const grf05 = useGrafico(() => api.graficos.heatmapEstados(), []);
+  const grf06 = useGrafico(() => api.graficos.scatterPfPj(), []);
+  // const grf07 = useGrafico(
+  //   () => api.graficos.estudioEstado(selectedState ?? "MG", 5),
+  //   [selectedState]
+  // );
+  const grf08 = useGrafico(() => api.graficos.scoreOportunidade(), []);
+  const grf09 = useGrafico(() => api.graficos.monteCarlo(), []);
+  const ufsData = useGrafico(() => api.ufs.listar(), []);
 
-  // efeito que simula a API enquanto o backend não fica pronto
-  useEffect(() => {
-    const fetchChartData = async () => {
-      // mock temporário
-      console.log(`[Front] Simulando busca de dados de ${start_date} até ${end_date}`);
-      
-      const periodMap: Record<TimePeriod, number> = {
-        "1m": 1,
-        "3m": 3, 
-        "6m": 6, 
-        "1y": 12, 
-        "3y": 36, 
-        "5y": 60, 
-        "all": timeSeriesData.length
-      };
-      
-      const monthsToSlice = periodMap[period] || 12;
-      const mockedResponse = timeSeriesData.slice(-monthsToSlice);
-      
-      setChartData(mockedResponse);
+  // ── Filtros ─────────────────────────────────────────────────────────────────
+  const mapData = useMemo(() => {
+    if (!grf08.data) return [];
+    return grf08.data.ranking.map(r => ({ estado: r.sigla_uf, valor: r.score_oportunidade }));
+  }, [grf08.data]);
 
-      // quando o backend estiver pronto, apagar o mock acima e descomentar abaixo:
-      /*
-      const stateParam = selectedState ? `&estado=${selectedState}` : "";
-      const url = `http://localhost:8000/api/evolution?start_date=${start_date}&end_date=${end_date}${stateParam}`;
-      
-      try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Falha na rede");
-        const data = await response.json();
-        setChartData(data);
-      } catch (error) {
-        console.error("Erro ao buscar dados", error);
-      }
-      */
-    };
-
-    fetchChartData();
-  }, [period, start_date, end_date, selectedState, selectedMacroRegion]);
-
-  // Estados Disponiveis 
   const availableStates = useMemo(() => {
-    const allStates = [...new Set(regionsData.map(r => r.state))].sort();
-    if (!selectedMacroRegion) return allStates;
-    return allStates.filter(s => MACRO_REGIONS[selectedMacroRegion].states.includes(s));
-  }, [selectedMacroRegion]);
-
-  // Regiões filtradas
-  const filteredRegions = useMemo(() => {
-    return regionsData.filter(r => {
-      const matchesMacro = !selectedMacroRegion ||
-        MACRO_REGIONS[selectedMacroRegion].states.includes(r.state);
-      const matchesState = !selectedState || r.state === selectedState;
-      return matchesMacro && matchesState;
-    });
-  }, [selectedMacroRegion, selectedState]);
-
-  const allRegionsSorted = useMemo(
-    () => [...filteredRegions].sort((a, b) => b.score - a.score),
-    [filteredRegions]
-  );
-
-  const scoreDistribution = useMemo(() => {
-    const ranges = [
-      { name: "Excelente (85+)", min: 85, count: 0, color: "#10b981" },
-      { name: "Bom (75-84)", min: 75, count: 0, color: "#3b82f6" },
-      { name: "Médio (65-74)", min: 65, count: 0, color: "#f59e0b" },
-      { name: "Baixo (<65)", min: 0,  count: 0, color: "#ef4444" },
-    ];
-    filteredRegions.forEach(r => {
-      if (r.score >= 85) ranges[0].count++;
-      else if (r.score >= 75) ranges[1].count++;
-      else if (r.score >= 65) ranges[2].count++;
-      else ranges[3].count++;
-    });
-    return ranges.filter(r => r.count > 0);
-  }, [filteredRegions]);
-
-  const fmtCurrency = (v: number) =>
-    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", notation: "compact", maximumFractionDigits: 1 }).format(v);
-  const fmtNumber = (v: number) =>
-    new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 }).format(v);
-
-  const grid = { stroke: "rgba(0,0,0,0.05)" };
-  const tick  = { fill: "#64748b", fontSize: 11 };
-  const ttip  = {
-    contentStyle: { backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, color: "#1e293b", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" },
-    labelStyle: { color: "#64748b", fontWeight: 500 },
-    itemStyle: { color: "#0f172a", fontWeight: 600 }
-  };
-
-  const selectedRegion = selectedState ? regionsData.find(r => r.state === selectedState) : null;
+    const all = (ufsData.data ?? []).map(u => u.sigla_uf).sort();
+    if (!selectedMacroRegion) return all;
+    return all.filter(s => MACRO_REGIONS[selectedMacroRegion].states.includes(s));
+  }, [ufsData.data, selectedMacroRegion]);
 
   const handleStateClick = (uf: string) => {
-    if (uf === "" || uf === selectedState) {
-      setSelectedState(undefined);
-      return;
-    }
-    const macro = getMacroRegion(uf);
-    setSelectedState(uf);
-    if (macro && !selectedMacroRegion) {
-    }
+    setSelectedState(uf === "" || uf === selectedState ? undefined : uf);
   };
 
   const handleMacroChange = (value: string) => {
@@ -148,31 +115,24 @@ export function Dashboard() {
     }
   };
 
-  const clearAllFilters = () => {
-    setSelectedMacroRegion(undefined);
-    setSelectedState(undefined);
-    setPeriod("1y");
-  };
+  const clearFilters = () => { setSelectedMacroRegion(undefined); setSelectedState(undefined); };
+  const hasFilters = !!selectedMacroRegion || !!selectedState;
 
-  const hasActiveFilters = !!selectedMacroRegion || !!selectedState || period !== "1y";
-  const activeFilterCount = [selectedMacroRegion, selectedState, period !== "1y" ? "time" : undefined]
-    .filter(Boolean).length;
+  // ── Ranking lateral (do grf08, filtrado pela região selecionada) ──────────
+  const rankingFiltrado = useMemo(() => {
+    const full = grf08.data?.ranking ?? [];
+    if (!selectedMacroRegion) return full;
+    return full.filter(r => MACRO_REGIONS[selectedMacroRegion].states.includes(r.sigla_uf));
+  }, [grf08.data, selectedMacroRegion]);
 
-  const detailItems = selectedRegion ? [
-    { label: "Score", value: selectedRegion.score.toFixed(1), cls: "text-blue-400 font-bold" },
-    { label: "Potencial",    value: fmtCurrency(selectedRegion.potencialCredito), cls: "text-foreground font-bold" },
-    { label: "Macrorregião", value: MACRO_REGIONS[getMacroRegion(selectedRegion.state) ?? ""]?.label ?? "—", cls: "text-muted-foreground" },
-    { label: "População",    value: fmtNumber(selectedRegion.population), cls: "text-muted-foreground" },
-    { label: "Bancarização", value: `${selectedRegion.bancarizacao}%`, cls: "text-muted-foreground" },
-    { label: "Inadimplência",value: `${selectedRegion.inadimplencia}%`,
-      cls: selectedRegion.inadimplencia > 5 ? "text-red-400 font-medium" : "text-green-400 font-medium" },
-    { label: "Renda Média",  value: fmtCurrency(selectedRegion.rendaMedia), cls: "text-muted-foreground" },
-  ] : [];
+  const selectedRankingItem = selectedState
+    ? grf08.data?.ranking.find(r => r.sigla_uf === selectedState)
+    : null;
 
   return (
     <div className="space-y-6">
 
-      {/* ── Header ───────────────────────────────────────────────────────── */}
+      {/* ── Header ──────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-3xl font-bold text-vocedm-navy">Dashboard de Oportunidades</h2>
@@ -180,26 +140,6 @@ export function Dashboard() {
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
-          {/* Período */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-muted-foreground">Período:</label>
-            {/* refatoração do Select para usar o novo hook */}
-            <Select value={period} onValueChange={(value) => setPeriod(value as TimePeriod)}>
-              <SelectTrigger className="w-32 bg-white border-input text-foreground">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-white border-input text-foreground">
-                <SelectItem value="1m">1 mês</SelectItem>
-                <SelectItem value="3m">3 meses</SelectItem>
-                <SelectItem value="6m">6 meses</SelectItem>
-                <SelectItem value="1y">1 ano</SelectItem>
-                <SelectItem value="3y">3 anos</SelectItem>
-                <SelectItem value="5y">5 anos</SelectItem>
-                <SelectItem value="all">Todo o período</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Macrorregião */}
           <div className="flex items-center gap-2">
             <label className="text-sm text-muted-foreground">Região:</label>
@@ -210,7 +150,7 @@ export function Dashboard() {
                 {Object.entries(MACRO_REGIONS).map(([key, { label, color }]) => (
                   <SelectItem key={key} value={key}>
                     <span className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full inline-block flex-shrink-0" style={{ backgroundColor: color }} />
+                      <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: color }} />
                       {label}
                     </span>
                   </SelectItem>
@@ -219,247 +159,147 @@ export function Dashboard() {
             </Select>
           </div>
 
-          {/* Estado (cascata) */}
+          {/* Estado */}
           <div className="flex items-center gap-2">
             <label className="text-sm text-muted-foreground">Estado:</label>
             <Select value={selectedState ?? "all"} onValueChange={v => setSelectedState(v === "all" ? undefined : v)}>
               <SelectTrigger className="w-36 bg-white border-input text-foreground"><SelectValue /></SelectTrigger>
               <SelectContent className="bg-white border-input text-foreground">
                 <SelectItem value="all">Todos</SelectItem>
-                {availableStates.map(s => (
-                  <SelectItem key={s} value={s}>{s}</SelectItem>
-                ))}
+                {availableStates.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
-
         </div>
       </div>
 
-      {/* Macrorregiões + Filtros Ativos */}
+      {/* ── Botões de macrorregião + filtros ativos ─────────────────────────── */}
       <div className="flex items-center gap-2 flex-wrap">
         {Object.entries(MACRO_REGIONS).map(([key, { label, color, states }]) => {
           const isActive = selectedMacroRegion === key;
-          const regionCount = regionsData.filter(r => states.includes(r.state)).length;
           return (
-            <button
-              key={key}
-              onClick={() => handleMacroChange(isActive ? "all" : key)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border transition-all duration-200 ${
-                isActive
-                  ? "text-foreground shadow-lg scale-105"
-                  : "bg-white text-muted-foreground border-border hover:border-white/20 hover:text-muted-foreground"
-              }`}
-              style={isActive ? { backgroundColor: `${color}25`, borderColor: `${color}60`, color } : {}}
-            >
-              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+            <button key={key} onClick={() => handleMacroChange(isActive ? "all" : key)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border transition-all duration-200 ${isActive ? "text-foreground shadow-lg scale-105" : "bg-white text-muted-foreground border-border hover:border-white/20"
+                }`}
+              style={isActive ? { backgroundColor: `${color}25`, borderColor: `${color}60`, color } : {}}>
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
               {label}
-              <span
-                className="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
-                style={isActive
-                  ? { backgroundColor: `${color}30`, color }
-                  : { backgroundColor: "rgba(255,255,255,0.05)", color: "#64748b" }
-                }
-              >
-                {regionCount}
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
+                style={isActive ? { backgroundColor: `${color}30`, color } : { backgroundColor: "rgba(0,0,0,0.06)", color: "#64748b" }}>
+                {states.length}
               </span>
-              x
             </button>
           );
         })}
 
-        {/* Separador visual */}
-        {hasActiveFilters && (
-          <div className="w-px h-5 bg-border mx-1 flex-shrink-0" />
-        )}
-
-        {/* Filtros ativos */}
-        {hasActiveFilters && (
+        {hasFilters && (
           <>
+            <div className="w-px h-5 bg-border mx-1" />
             {selectedMacroRegion && (
-              <Badge
-                className="flex items-center gap-1 cursor-pointer text-xs px-2 py-1 border rounded-full"
-                style={{
-                  backgroundColor: `${MACRO_REGIONS[selectedMacroRegion].color}20`,
-                  color: MACRO_REGIONS[selectedMacroRegion].color,
-                  borderColor: `${MACRO_REGIONS[selectedMacroRegion].color}40`,
-                }}
-                onClick={() => handleMacroChange("all")}
-              >
+              <Badge className="flex items-center gap-1 cursor-pointer text-xs px-2 py-1 border rounded-full"
+                style={{ backgroundColor: `${MACRO_REGIONS[selectedMacroRegion].color}20`, color: MACRO_REGIONS[selectedMacroRegion].color, borderColor: `${MACRO_REGIONS[selectedMacroRegion].color}40` }}
+                onClick={() => handleMacroChange("all")}>
                 {MACRO_REGIONS[selectedMacroRegion].label} <X className="w-2.5 h-2.5" />
               </Badge>
             )}
-
             {selectedState && (
-              <Badge
-                className="flex items-center gap-1 cursor-pointer text-xs px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 rounded-full"
-                onClick={() => setSelectedState(undefined)}
-              >
+              <Badge className="flex items-center gap-1 cursor-pointer text-xs px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 rounded-full"
+                onClick={() => setSelectedState(undefined)}>
                 {selectedState} <X className="w-2.5 h-2.5" />
               </Badge>
             )}
-
-            {period !== "1y" && (
-              <Badge
-                className="flex items-center gap-1 cursor-pointer text-xs px-2 py-1 bg-purple-50 text-purple-600 border border-purple-200 hover:bg-purple-100 rounded-full"
-                onClick={() => setPeriod("1y")}
-              >
-                {{"1m":"1 mês","3m":"3 meses","6m":"6 meses","1y":"1 ano","3y":"3 anos","5y":"5 anos","all":"Todo período"}[period]}
-                <X className="w-2.5 h-2.5" />
-              </Badge>
-            )}
-
-            <span className="text-xs text-muted-foreground ml-1">
-              · {filteredRegions.length} região{filteredRegions.length !== 1 ? "s" : ""}
-            </span>
+            <button onClick={clearFilters}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors">
+              <X className="w-3 h-3" /> Limpar filtros
+            </button>
           </>
         )}
-
-        {/* Botão limpar filtros */}
-        {hasActiveFilters && (
-          <button
-            onClick={clearAllFilters}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors"
-          >
-            <X className="w-3 h-3" />
-            Limpar ({activeFilterCount})
-          </button>
-        )}
       </div>
 
-      {/* ── KPIs ─────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[
-          {
-            label: "Potencial Total",
-            value: fmtCurrency(filteredRegions.reduce((s, r) => s + r.potencialCredito, 0)),
-            sub: `↗ +${kpiData.crescimentoMensal}% vs mês anterior`,
-            icon: <DollarSign className="w-5 h-5 opacity-80" />,
-            grad: "bg-vocedm-blue text-white",
-          },
-          {
-            label: "Regiões Mapeadas",
-            value: String(filteredRegions.length),
-            sub: selectedMacroRegion
-              ? `na região ${MACRO_REGIONS[selectedMacroRegion].label}`
-              : "Territórios analisados",
-            icon: <Target className="w-5 h-5 opacity-80" />,
-            grad: "bg-vocedm-teal text-vocedm-navy",
-          },
-          {
-            label: "Ticket Médio",
-            value: fmtCurrency(kpiData.ticketMedioNacional),
-            sub: "↗ +4.2% vs trimestre anterior",
-            icon: <TrendingUp className="w-5 h-5 opacity-80" />,
-            grad: "bg-vocedm-salmon text-vocedm-navy",
-          },
-          {
-            label: "População Alvo",
-            value: fmtNumber(filteredRegions.reduce((s, r) => s + r.population, 0)),
-            sub: "Habitantes nas regiões",
-            icon: <Users className="w-5 h-5 opacity-80" />,
-            grad: "bg-[#F1EFFF] text-vocedm-navy",
-          },
-        ].map(k => (
-          <div key={k.label} className={`rounded-2xl p-5 relative overflow-hidden ${k.grad}`}>
-            <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full bg-black/5" />
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-semibold opacity-90">{k.label}</span>
-              {k.icon}
-            </div>
-            <div className="text-3xl font-bold leading-none mb-1">{k.value}</div>
-            <p className="text-xs opacity-80">{k.sub}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* ── Mapa + Ranking ───────────────────────────────────────────────── */}
+      {/* ── Mapa + Ranking IOI ───────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card >
+        <Card>
           <CardHeader>
             <CardTitle>Mapa do Brasil</CardTitle>
             <CardDescription>
               {selectedMacroRegion
                 ? `Filtrando: ${MACRO_REGIONS[selectedMacroRegion].label} — clique em um estado`
-                : "Clique em um estado para ver os indicadores"}
+                : "Colorido pelo Score IOI — clique em um estado"}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <BrazilMap
-              data={filteredRegions.map(r => ({ estado: r.state, valor: r.score }))}
+              data={mapData}
               selectedState={selectedState}
               onStateClick={handleStateClick}
             />
           </CardContent>
         </Card>
 
-        <Card >
+        <Card>
           <CardHeader>
-            <CardTitle>Ranking Regional</CardTitle>
-            <CardDescription>
-              {selectedMacroRegion
-                ? `Top regiões — ${MACRO_REGIONS[selectedMacroRegion].label}`
-                : "Top regiões por potencial de crédito"}
-            </CardDescription>
+            <CardTitle>Ranking IOI</CardTitle>
+            <CardDescription>Score de oportunidade por estado (0–10)</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex gap-0" style={{ minHeight: 340 }}>
-              {/* Ranking — metade esquerda */}
+              {/* Lista */}
               <div className="w-1/2 space-y-1 overflow-y-auto pr-2" style={{ maxHeight: 340 }}>
-                {allRegionsSorted.length === 0 ? (
+                {grf08.loading ? (
+                  <div className="flex items-center justify-center h-40 text-sm text-muted-foreground gap-2">
+                    <RefreshCw className="w-4 h-4 animate-spin" /> Carregando...
+                  </div>
+                ) : rankingFiltrado.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center gap-2 text-center pt-10">
                     <span className="text-2xl">🔍</span>
-                    <p className="text-[11px] text-muted-foreground">Nenhuma região encontrada para os filtros selecionados.</p>
+                    <p className="text-[11px] text-muted-foreground">Sem dados de ranking para os filtros selecionados.</p>
                   </div>
                 ) : (
-                  allRegionsSorted.map((region, index) => {
-                    const macro = getMacroRegion(region.state);
+                  rankingFiltrado.map((r, idx) => {
+                    const macro = getMacroRegion(r.sigla_uf);
                     const macroColor = macro ? MACRO_REGIONS[macro].color : "#64748b";
                     return (
-                      <div key={region.id}
-                        onClick={() => handleStateClick(region.state)}
-                        className={`flex items-center gap-2 p-2.5 rounded-xl cursor-pointer transition-colors border-b border-border last:border-0 ${selectedState === region.state ? "bg-vocedm-blue/10" : "hover:bg-slate-50"}`}
-                      >
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] text-white flex-shrink-0 ${
-                          index === 0 ? "bg-[#f97316]" : index === 1 ? "bg-slate-500" : index === 2 ? "bg-amber-700" : "bg-vocedm-blue"
-                        }`}>
-                          {index + 1}
+                      <div key={r.sigla_uf}
+                        onClick={() => handleStateClick(r.sigla_uf)}
+                        className={`flex items-center gap-2 p-2.5 rounded-xl cursor-pointer transition-colors border-b border-border last:border-0 ${selectedState === r.sigla_uf ? "bg-vocedm-blue/10" : "hover:bg-slate-50"}`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] text-white flex-shrink-0 ${idx === 0 ? "bg-[#f97316]" : idx === 1 ? "bg-slate-500" : idx === 2 ? "bg-amber-700" : "bg-vocedm-blue"}`}>
+                          {idx + 1}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1">
-                            <p className="font-semibold text-foreground text-[11px] truncate">{region.name}</p>
-                            <Badge className="text-[9px] px-1 py-0 bg-[#F1EFFF] text-vocedm-blue border border-vocedm-blue/20 hover:bg-[#E2DDF5] flex-shrink-0">
-                              {region.state}
-                            </Badge>
+                            <p className="font-semibold text-foreground text-[11px] truncate">{r.nome}</p>
+                            <Badge className="text-[9px] px-1 py-0 bg-[#F1EFFF] text-vocedm-blue border border-vocedm-blue/20 flex-shrink-0">{r.sigla_uf}</Badge>
                           </div>
                           <div className="flex items-center gap-1 mt-0.5">
-                            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: macroColor }} />
-                            <div className="text-[10px] text-muted-foreground">Inadimp: {region.inadimplencia}%</div>
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: macroColor }} />
+                            <span className="text-[10px] text-muted-foreground">Score: {r.score_oportunidade.toFixed(2)}</span>
                           </div>
                         </div>
-                        <div className="font-bold text-xs text-vocedm-blue flex-shrink-0">{region.score.toFixed(1)}</div>
+                        <div className="font-bold text-xs text-vocedm-blue">{r.score_oportunidade.toFixed(1)}</div>
                       </div>
                     );
                   })
                 )}
               </div>
-
-              {/* Divisor */}
-              <div className="w-px bg-white/10 mx-3 flex-shrink-0" />
-
-              {/* Detalhe — metade direita */}
+              <div className="w-px bg-border mx-3" />
+              {/* Detalhe */}
               <div className="w-1/2 pl-1">
-                {selectedRegion ? (
+                {selectedRankingItem ? (
                   <>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-1.5">
-                        <Badge className="bg-[#F1EFFF] text-vocedm-blue border border-vocedm-blue/20 text-xs">{selectedRegion.state}</Badge>
-                        <span className="text-foreground text-sm font-semibold truncate">{selectedRegion.name}</span>
+                        <Badge className="bg-[#F1EFFF] text-vocedm-blue border border-vocedm-blue/20 text-xs">{selectedRankingItem.sigla_uf}</Badge>
+                        <span className="text-foreground text-sm font-semibold truncate">{selectedRankingItem.nome}</span>
                       </div>
-                      <button onClick={() => setSelectedState(undefined)} className="text-muted-foreground hover:text-foreground text-xs transition-colors flex-shrink-0 ml-1">✕</button>
+                      <button onClick={() => setSelectedState(undefined)} className="text-muted-foreground hover:text-foreground text-xs ml-1">✕</button>
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      {detailItems.map(item => (
+                      {[
+                        { label: "Score IOI", value: `${selectedRankingItem.score_oportunidade.toFixed(2)} / 10`, cls: "text-vocedm-blue font-bold" },
+                        { label: "Risco", value: selectedRankingItem.componente_risco != null ? `${selectedRankingItem.componente_risco.toFixed(2)}` : "—", cls: "text-muted-foreground" },
+                        { label: "Tendência", value: (selectedRankingItem as any).componente_tendencia != null ? `${(selectedRankingItem as any).componente_tendencia.toFixed(2)}` : "—", cls: "text-muted-foreground" },
+                        { label: "Macrorregião", value: MACRO_REGIONS[getMacroRegion(selectedRankingItem.sigla_uf) ?? ""]?.label ?? "—", cls: "text-muted-foreground" },
+                      ].map(item => (
                         <div key={item.label} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
                           <span className="text-muted-foreground text-xs">{item.label}</span>
                           <span className={`text-sm ${item.cls}`}>{item.value}</span>
@@ -479,205 +319,56 @@ export function Dashboard() {
         </Card>
       </div>
 
-      {/* ── Gráficos ─────────────────────────────────────────────────────── */}
+      <hr />
+
+      {/* ── Gráficos: linha 1 ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card >
-          <CardHeader>
-            <CardTitle>Evolução de Concessões</CardTitle>
-            <CardDescription>Volume de operações ao longo do tempo</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={240}>
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#3b82f6" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" {...grid} />
-                <XAxis dataKey="month" tick={tick} />
-                <YAxis tick={tick} />
-                <Tooltip {...ttip} />
-                <Area type="monotone" dataKey="concessoes" stroke="#3b82f6" strokeWidth={2} fill="url(#cg)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        <ChartCard title="Saldo de Crédito SFN" description="PF, PJ e Total — Séries BCB 20540/41/42 (R$ mi)"
+          loading={grf01.loading} error={grf01.error} refetch={grf01.refetch}>
+          {grf01.data && <ChartCreditoSfn data={grf01.data} />}
+        </ChartCard>
 
-        <Card >
-          <CardHeader>
-            <CardTitle>Taxa de Inadimplência</CardTitle>
-            <CardDescription>Evolução do índice (%)</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={240}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" {...grid} />
-                <XAxis dataKey="month" tick={tick} />
-                <YAxis tick={tick} domain={[0, 6]} />
-                <Tooltip {...ttip} />
-                <Legend wrapperStyle={{ color: "#94a3b8", fontSize: 12 }} />
-                <Line type="monotone" dataKey="inadimplencia" stroke="#ef4444" strokeWidth={2} dot={{ fill: "#ef4444", r: 3 }} name="Inadimplência %" />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card >
-          <CardHeader>
-            <CardTitle>Ticket Médio</CardTitle>
-            <CardDescription>Valor médio das operações (R$)</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" {...grid} />
-                <XAxis dataKey="month" tick={tick} />
-                <YAxis tick={tick} />
-                <Tooltip {...ttip} />
-                <Bar dataKey="ticket_medio" fill="#22c55e" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card >
-          <CardHeader>
-            <CardTitle>Distribuição por Score</CardTitle>
-            <CardDescription>
-              {selectedMacroRegion
-                ? `Classificação — ${MACRO_REGIONS[selectedMacroRegion].label}`
-                : "Classificação das regiões analisadas"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={240}>
-              <PieChart>
-                <Pie
-                  data={scoreDistribution}
-                  cx="50%" cy="50%"
-                  labelLine={false}
-                  label={({ name, count }: any) => `${name}: ${count}`}
-                  outerRadius={90}
-                  dataKey="count"
-                >
-                  {scoreDistribution.map((e, i) => <Cell key={i} fill={e.color} />)}
-                </Pie>
-                <Tooltip {...ttip} />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        <ChartCard title="Contexto Macroeconômico" description="Selic, IPCA e Inadimplência PF — eixo duplo"
+          loading={grf02.loading} error={grf02.error} refetch={grf02.refetch}>
+          {grf02.data && <ChartMacroContexto data={grf02.data} />}
+        </ChartCard>
       </div>
 
-      {/* ── Novo Gráfico Adicionado ─────────────────────────────────────────── */}
-      <Card className="lg:col-span-2"> {/* Ocupa as duas colunas para destaque */}
-        <CardHeader>
-          <CardTitle>Análise Comparativa de Potencial</CardTitle>
-          <CardDescription>Visualização detalhada por região</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[400px] w-full">
-            <DashboardChart />
-          </div>
-        </CardContent>
-      </Card>
+      {/* ── Gráficos: linha 2 ─────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ChartCard title="Inadimplência Regional" description="Boxplot histórico + barras do valor atual por macrorregião"
+          loading={grf03.loading} error={grf03.error} refetch={grf03.refetch}>
+          {grf03.data && <ChartInadimplenciaRegional data={grf03.data} />}
+        </ChartCard>
 
-      {/* ── Segunda Linha de Gráficos Extras ───────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Gráfico de Barras de Potencial */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Potencial por Categoria</CardTitle>
-            <CardDescription>Análise detalhada de volume</CardDescription>
-          </CardHeader>
-          <CardContent className="h-[350px]">
-            <BarChartPotential />
-          </CardContent>
-        </Card>
-
-        {/* Gráfico de Rosca de Público */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Distribuição de Público</CardTitle>
-            <CardDescription>Segmentação por perfil</CardDescription>
-          </CardHeader>
-          <CardContent className="h-[350px] overflow-hidden relative">
-            <DoughnutPublic />
-          </CardContent>
-        </Card>
+        <ChartCard title="Dispersão PF vs PJ" description="Inadimplência atual por estado — cor indica macrorregião"
+          loading={grf06.loading} error={grf06.error} refetch={grf06.refetch}>
+          {grf06.data && <ChartScatterPfPj data={grf06.data} />}
+        </ChartCard>
       </div>
 
-      {/* ── Tabela ───────────────────────────────────────────────────────── */}
-      <Card >
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Detalhamento Regional</CardTitle>
-              <CardDescription>
-                Indicadores completos — {filteredRegions.length} {filteredRegions.length === 1 ? "região" : "regiões"}
-                {selectedMacroRegion && ` · ${MACRO_REGIONS[selectedMacroRegion].label}`}
-                {selectedState && ` · ${selectedState}`}
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  {["Região", "UF", "Macrorregião", "Score", "População", "Bancarização", "Inadimplência", "Renda Média", "Potencial"].map(h => (
-                    <th key={h} className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {allRegionsSorted.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="py-12 text-center text-muted-foreground text-sm">
-                      Nenhuma região encontrada para os filtros selecionados.
-                    </td>
-                  </tr>
-                ) : (
-                  allRegionsSorted.map(r => {
-                    const macro = getMacroRegion(r.state);
-                    const macroInfo = macro ? MACRO_REGIONS[macro] : null;
-                    return (
-                      <tr key={r.id}
-                        onClick={() => handleStateClick(r.state)}
-                        className={`border-b border-border last:border-0 cursor-pointer transition-colors ${selectedState === r.state ? "bg-vocedm-blue/10" : "hover:bg-slate-50"}`}
-                      >
-                        <td className="py-3 px-4 text-sm text-foreground font-medium">{r.name}</td>
-                        <td className="py-3 px-4">
-                          <Badge className="text-xs bg-[#F1EFFF] text-vocedm-blue border border-vocedm-blue/20 hover:bg-[#E2DDF5]">{r.state}</Badge>
-                        </td>
-                        <td className="py-3 px-4">
-                          {macroInfo && (
-                            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: macroInfo.color }} />
-                              {macroInfo.label}
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-sm font-bold text-vocedm-blue">{r.score.toFixed(1)}</td>
-                        <td className="py-3 px-4 text-sm text-muted-foreground">{fmtNumber(r.population)}</td>
-                        <td className="py-3 px-4 text-sm text-muted-foreground">{r.bancarizacao}%</td>
-                        <td className="py-3 px-4 text-sm">
-                          <span className={r.inadimplencia < 4 ? "text-green-600 font-medium" : "text-red-500 font-medium"}>{r.inadimplencia}%</span>
-                        </td>
-                        <td className="py-3 px-4 text-sm text-muted-foreground">{fmtCurrency(r.rendaMedia)}</td>
-                        <td className="py-3 px-4 text-sm font-bold text-foreground">{fmtCurrency(r.potencialCredito)}</td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+
+
+      {/* ── Gráficos: linha 3 ─────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* ── GRF-05 Heatmap  ──────────────────────────────────── */}
+        <ChartCard title="Heatmap de Inadimplência Estadual" description="Matriz UF × Mês — últimos 24 meses (verde=baixa, vermelho=alta)"
+          loading={grf05.loading} error={grf05.error} refetch={grf05.refetch} >
+          {grf05.data && <ChartHeatmapEstados data={grf05.data} />}
+        </ChartCard>
+
+        <ChartCard title="Score IOI — Ranking de Oportunidade" description="Índice de Oportunidade Inclusiva por estado (0–10)"
+          loading={grf08.loading} error={grf08.error} refetch={grf08.refetch}>
+          {grf08.data && <ChartScoreOportunidade data={grf08.data} />}
+        </ChartCard>
+      </div>
+
+      {/* ── GRF-09 Monte Carlo (largura total) ──────────────────────────────── */}
+      <ChartCard title="Simulação Monte Carlo" description="Distribuição de perdas projetadas — VaR 95% e 99%"
+        loading={grf09.loading} error={grf09.error} refetch={grf09.refetch} colSpan={2}>
+        {grf09.data && <ChartMonteCarlo data={grf09.data} />}
+      </ChartCard>
+
     </div>
   );
 }

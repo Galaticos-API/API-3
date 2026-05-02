@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Instalar as dependências de forma reproduzível
-RUN npm ci
+RUN npm install --legacy-peer-deps
 
 # Copiar o restante da aplicação e realizar o build estático
 COPY . .
@@ -21,18 +21,21 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Configuração customizada do Nginx para suportar as rotas da SPA corretamente (React Router)
 RUN echo 'server { \
-    listen       80; \
-    server_name  localhost; \
+    listen 80; \
+    server_name localhost; \
+    location /api/v1/ { \
+        proxy_pass http://backend:8000/api/v1/; \
+        proxy_set_header Host $host; \
+        proxy_set_header X-Real-IP $remote_addr; \
+    } \
     location / { \
-        root   /usr/share/nginx/html; \
-        index  index.html index.htm; \
+        root /usr/share/nginx/html; \
+        index index.html index.htm; \
         try_files $uri $uri/ /index.html; \
     } \
-    error_page   500 502 503 504  /50x.html; \
-    location = /50x.html { \
-        root   /usr/share/nginx/html; \
-    } \
-}' > /etc/nginx/conf.d/default.conf
+    error_page 500 502 503 504 /50x.html; \
+    location = /50x.html { root /usr/share/nginx/html; } \
+    }' > /etc/nginx/conf.d/default.conf
 
 # Expor porta original HTTP
 EXPOSE 80

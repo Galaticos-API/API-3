@@ -1,17 +1,32 @@
 from fastapi import FastAPI
-from api.routes import database, etl, data
+from fastapi.middleware.cors import CORSMiddleware
+from api.routes import graficos, etl
 
 app = FastAPI(
-    title="API - Crédito Inclusivo",
-    description="Backend estruturado para realizar orquestração de rotinas ETL e Bancos de Dados SQLite.",
-    version="1.0.0"
+    title="API — Crédito Inclusivo",
+    description="Backend para orquestração ETL, banco SQLite e endpoints de visualização.",
+    version="1.0.0",
 )
 
-# Adicionando os roteadores na aplicação global
-app.include_router(database.router, prefix="/api/database", tags=["Database"])
-app.include_router(etl.router, prefix="/api/etl", tags=["ETL"])
-app.include_router(data.router, prefix="/api", tags=["Data"])
+# ─── CORS ────────────────────────────────────────────────────────────────────
+# Aceita requisições do frontend em dev (Vite :5173) e em prod (Docker :80)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://localhost:80", "http://localhost"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-@app.get("/")
+# ─── Roteadores ──────────────────────────────────────────────────────────────
+app.include_router(graficos.router, prefix="/api/v1/graficos", tags=["Gráficos Prontos"])
+app.include_router(etl.router,      prefix="/api/v1/etl",      tags=["ETL"])
+
+
+@app.get("/", tags=["Root"])
 def read_root():
-    return {"message": "Bem-vindo à API do projeto Mapa de Crédito Inclusivo. Acesse /docs para Swagger UI."}
+    return {
+        "message": "API do Mapa de Crédito Inclusivo — v1",
+        "docs": "/docs",
+        "prefixo": "/api/v1",
+    }

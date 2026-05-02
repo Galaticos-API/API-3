@@ -3,3 +3,6 @@ uvicorn
 requests
 pandas
 python-dotenv
+numpy
+python-jose[cryptography]
+passlib[bcrypt]
