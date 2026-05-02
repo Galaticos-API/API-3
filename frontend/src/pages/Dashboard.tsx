@@ -8,7 +8,7 @@ import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
 } from "recharts";
-import { TrendingUp, Users, DollarSign, Target, X, MapPin } from "lucide-react";
+import { TrendingUp, Users, DollarSign, Target, X } from "lucide-react";
 import { Badge } from "../components/ui/badge";
 import { useTimeFilter, type TimePeriod } from "../hooks/useTimeFilter";
 
@@ -230,71 +230,11 @@ export function Dashboard() {
             </Select>
           </div>
 
-          {/* Botão limpar filtros */}
-          {hasActiveFilters && (
-            <button
-              onClick={clearAllFilters}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors"
-            >
-              <X className="w-3 h-3" />
-              Limpar ({activeFilterCount})
-            </button>
-          )}
         </div>
       </div>
 
-      {/* ── Filtros Ativos (badges visuais) ─────────────────────────────── */}
-      {hasActiveFilters && (
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-muted-foreground flex items-center gap-1">
-            <MapPin className="w-3 h-3" /> Filtros ativos:
-          </span>
-          {selectedMacroRegion && (
-            <Badge
-              className="flex items-center gap-1 cursor-pointer text-xs px-2 py-1 border"
-              style={{
-                backgroundColor: `${MACRO_REGIONS[selectedMacroRegion].color}20`,
-                color: MACRO_REGIONS[selectedMacroRegion].color,
-                borderColor: `${MACRO_REGIONS[selectedMacroRegion].color}40`,
-              }}
-              onClick={() => handleMacroChange("all")}
-            >
-              {MACRO_REGIONS[selectedMacroRegion].label} <X className="w-2.5 h-2.5" />
-            </Badge>
-          )}
-          {selectedState && (
-            <Badge
-              className="flex items-center gap-1 cursor-pointer text-xs px-2 py-1 bg-blue-900/50 text-blue-300 border border-blue-500/30 hover:bg-blue-900/70"
-              onClick={() => setSelectedState(undefined)}
-            >
-              {selectedState} <X className="w-2.5 h-2.5" />
-            </Badge>
-          )}
-          {period !== "1y" && (
-            <Badge
-              className="flex items-center gap-1 cursor-pointer text-xs px-2 py-1 bg-purple-900/50 text-purple-300 border border-purple-500/30 hover:bg-purple-900/70"
-              onClick={() => setPeriod("1y")}
-            >
-              {{
-                "1m": "1 mês",
-                "3m": "3 meses",
-                "6m": "6 meses",
-                "1y": "1 ano",
-                "3y": "3 anos",
-                "5y": "5 anos",
-                "all": "Todo o período"
-              }[period]} <X className="w-2.5 h-2.5" />
-            </Badge>
-          )}
-
-          <span className="text-xs text-muted-foreground">
-            — {filteredRegions.length} {filteredRegions.length === 1 ? "região" : "regiões"} encontrada{filteredRegions.length !== 1 ? "s" : ""}
-          </span>
-        </div>
-      )}
-
-      {/* ── Seletor visual de Macrorregiões ─────────────────────────────── */}
-      <div className="flex gap-2 flex-wrap">
+      {/* Macrorregiões + Filtros Ativos */}
+      <div className="flex items-center gap-2 flex-wrap">
         {Object.entries(MACRO_REGIONS).map(([key, { label, color, states }]) => {
           const isActive = selectedMacroRegion === key;
           const regionCount = regionsData.filter(r => states.includes(r.state)).length;
@@ -319,10 +259,69 @@ export function Dashboard() {
                 }
               >
                 {regionCount}
-              </span>x
+              </span>
+              x
             </button>
           );
         })}
+
+        {/* Separador visual */}
+        {hasActiveFilters && (
+          <div className="w-px h-5 bg-border mx-1 flex-shrink-0" />
+        )}
+
+        {/* Filtros ativos */}
+        {hasActiveFilters && (
+          <>
+            {selectedMacroRegion && (
+              <Badge
+                className="flex items-center gap-1 cursor-pointer text-xs px-2 py-1 border rounded-full"
+                style={{
+                  backgroundColor: `${MACRO_REGIONS[selectedMacroRegion].color}20`,
+                  color: MACRO_REGIONS[selectedMacroRegion].color,
+                  borderColor: `${MACRO_REGIONS[selectedMacroRegion].color}40`,
+                }}
+                onClick={() => handleMacroChange("all")}
+              >
+                {MACRO_REGIONS[selectedMacroRegion].label} <X className="w-2.5 h-2.5" />
+              </Badge>
+            )}
+
+            {selectedState && (
+              <Badge
+                className="flex items-center gap-1 cursor-pointer text-xs px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 rounded-full"
+                onClick={() => setSelectedState(undefined)}
+              >
+                {selectedState} <X className="w-2.5 h-2.5" />
+              </Badge>
+            )}
+
+            {period !== "1y" && (
+              <Badge
+                className="flex items-center gap-1 cursor-pointer text-xs px-2 py-1 bg-purple-50 text-purple-600 border border-purple-200 hover:bg-purple-100 rounded-full"
+                onClick={() => setPeriod("1y")}
+              >
+                {{"1m":"1 mês","3m":"3 meses","6m":"6 meses","1y":"1 ano","3y":"3 anos","5y":"5 anos","all":"Todo período"}[period]}
+                <X className="w-2.5 h-2.5" />
+              </Badge>
+            )}
+
+            <span className="text-xs text-muted-foreground ml-1">
+              · {filteredRegions.length} região{filteredRegions.length !== 1 ? "s" : ""}
+            </span>
+          </>
+        )}
+
+        {/* Botão limpar filtros */}
+        {hasActiveFilters && (
+          <button
+            onClick={clearAllFilters}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors"
+          >
+            <X className="w-3 h-3" />
+            Limpar ({activeFilterCount})
+          </button>
+        )}
       </div>
 
       {/* ── KPIs ─────────────────────────────────────────────────────────── */}
