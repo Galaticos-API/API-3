@@ -2,6 +2,9 @@ import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { BrazilMap } from "../components/BrazilMap";
+import { DashboardChart } from "../components/DashboardChart";
+import { BarChartPotential } from "../components/BarChartPotential";
+import { DoughnutPublic } from "../components/DoughnutPublic";
 
 import { regionsData, timeSeriesData, kpiData } from "../data/mockData";
 import {
@@ -564,6 +567,44 @@ export function Dashboard() {
                 <Tooltip {...ttip} />
               </PieChart>
             </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── Novo Gráfico Adicionado ─────────────────────────────────────────── */}
+      <Card className="lg:col-span-2"> {/* Ocupa as duas colunas para destaque */}
+        <CardHeader>
+          <CardTitle>Análise Comparativa de Potencial</CardTitle>
+          <CardDescription>Visualização detalhada por região</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[400px] w-full">
+            <DashboardChart />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Segunda Linha de Gráficos Extras ───────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Gráfico de Barras de Potencial */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Potencial por Categoria</CardTitle>
+            <CardDescription>Análise detalhada de volume</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[350px]">
+            <BarChartPotential />
+          </CardContent>
+        </Card>
+
+        {/* Gráfico de Rosca de Público */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Distribuição de Público</CardTitle>
+            <CardDescription>Segmentação por perfil</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[350px] overflow-hidden relative">
+            <DoughnutPublic />
           </CardContent>
         </Card>
       </div>
