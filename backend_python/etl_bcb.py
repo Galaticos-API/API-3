@@ -62,7 +62,7 @@ def conectar_banco():
     return conn
 
 
-def buscar_serie_bcb(codigo, data_inicial=None, max_tentativas=3):
+def buscar_serie_bcb(codigo, data_inicial=None, max_tentativas=5):
     """
     Busca dados de uma série no SGS do BCB.
     Retorna lista de dicts: [{"data": "01/01/2023", "valor": "3.5"}, ...]
@@ -86,7 +86,7 @@ def buscar_serie_bcb(codigo, data_inicial=None, max_tentativas=3):
 
     for tentativa in range(1, max_tentativas + 1):
         try:
-            resposta = requests.get(url, params=params, timeout=30)
+            resposta = requests.get(url, params=params, timeout=60)
             resposta.raise_for_status()
             dados = resposta.json()
             print(f"  Serie {codigo}: {len(dados)} registros encontrados")

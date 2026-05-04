@@ -107,7 +107,7 @@ def macro_contexto(anos: int = Query(5, ge=1, le=15)):
         data_corte = (datetime.now() - timedelta(days=anos * 365)).strftime("%Y-%m-%d")
         sql = """
             SELECT
-                data_referencia AS data,
+                strftime('%Y-%m', data_referencia) || '-01' AS data,
                 MAX(CASE WHEN id_serie = 432  THEN valor END) AS selic,
                 MAX(CASE WHEN id_serie = 433  THEN valor END) AS ipca,
                 MAX(CASE WHEN id_serie = 21082 THEN valor END) AS inadimplencia_pf
@@ -115,8 +115,8 @@ def macro_contexto(anos: int = Query(5, ge=1, le=15)):
             WHERE id_serie IN (432, 433, 21082)
               AND sigla_uf IS NULL
               AND data_referencia >= ?
-            GROUP BY data_referencia
-            ORDER BY data_referencia
+            GROUP BY strftime('%Y-%m', data_referencia)
+            ORDER BY data
         """
         series = _rows(conn, sql, (data_corte,))
         return {

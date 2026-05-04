@@ -7,7 +7,7 @@ const fmt = (v: number) =>
 
 const ttip = {
   contentStyle: { backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: 8 },
-  formatter: (value: number) => [`R$ ${fmt(value)} mi`, ""],
+  formatter: (value: number) => [`R$ ${fmt(value)}`, ""],
 };
 
 interface Props { data: CreditoSfnData }
@@ -24,9 +24,9 @@ export function ChartCreditoSfn({ data }: Props) {
     <ResponsiveContainer width="100%" height={260}>
       <LineChart data={series} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
-        <XAxis dataKey="data" tick={{ fill: "#64748b", fontSize: 10 }} tickFormatter={d => d.slice(0, 7)} />
+        <XAxis dataKey="data" tick={{ fill: "#64748b", fontSize: 10 }} tickFormatter={d => { const p = d.split('-'); return p.length >= 2 ? `${p[1]}/${p[0]}` : d; }} />
         <YAxis tick={{ fill: "#64748b", fontSize: 10 }} tickFormatter={fmt} width={58} />
-        <Tooltip {...ttip} labelFormatter={d => `Ref: ${d}`} />
+        <Tooltip {...ttip} labelFormatter={d => { const p = d.split('-'); return `Ref: ${p.length >= 3 ? `${p[2]}/${p[1]}/${p[0]}` : (p.length === 2 ? `${p[1]}/${p[0]}` : d)}`; }} />
         <Legend wrapperStyle={{ fontSize: 12 }} />
         <Line type="monotone" dataKey="saldo_pf"    stroke="#3b82f6" strokeWidth={2} dot={false} name="PF (R$ mi)" />
         <Line type="monotone" dataKey="saldo_pj"    stroke="#f97316" strokeWidth={2} dot={false} name="PJ (R$ mi)" />
