@@ -108,12 +108,12 @@ A pesquisa avaliou os principais provedores disponíveis para este caso de uso. 
 
 | Critério                      | **Groq (LLaMA 3)**       | **OpenAI (GPT-4o-mini)**   | **Anthropic (Claude Haiku)** | **Google (Gemini Flash)**  |
 |-------------------------------|--------------------------|----------------------------|------------------------------|----------------------------|
-| Latência média (TTFT)         | ⚡ ~200ms (LPU)          | ~600ms                     | ~400ms                       | ~500ms                     |
+| Latência média (TTFT)         |  ~200ms (LPU)          | ~600ms                     | ~400ms                       | ~500ms                     |
 | Custo input (por 1M tokens)   | **Gratuito** (free tier) / $0.05 | $0.15                | $0.25                        | $0.075                     |
 | Custo output (por 1M tokens)  | **Gratuito** / $0.08     | $0.60                      | $1.25                        | $0.30                      |
-| Aderência a System Prompt     | ✅ alta                  | ✅ Muito alta               | ✅ Muito alta                | ✅ alta                    |
-| Suporte PT-BR                 | ✅ Bom                   | ✅ Excelente                | ✅ Excelente                 | ✅ Bom                     |
-| SDK Python oficial            | ✅ `groq`                | ✅ `openai`                 | ✅ `anthropic`               | ✅ `google-generativeai`   |
+| Aderência a System Prompt     |  alta                  |  Muito alta               |  Muito alta                |  alta                    |
+| Suporte PT-BR                 |  Bom                   |  Excelente                |  Excelente                 |  Bom                     |
+| SDK Python oficial            |  `groq`                |  `openai`                 |  `anthropic`               |  `google-generativeai`   |
 | Rate Limit (free tier)        | 30 req/min, 6k tokens/min| 3 req/min                  | Não há free tier             | 15 req/min                 |
 | Contexto máximo               | 8.192 / 131.072 tokens   | 128.000 tokens             | 200.000 tokens               | 1.000.000 tokens           |
 | Self-host possível            | ❌                       | ❌                         | ❌                           | ❌                         |
