@@ -2,13 +2,12 @@
 
 | Campo            | Valor                                                         |
 |------------------|---------------------------------------------------------------|
-| **Task**         | S3-T1.1 — Integração LLM (pesquisa)                           |
-| **Sprint**       | Sprint 3                                                      |
-| **Módulo**       | assistente de IA (`AIAssistant.tsx` + backend FastAPI)        |
-| **Projeto**      | Mapa de Oportunidades de Crédito Inclusivo — Cliente: DM      |
-| **Responsável**  | equipe de Desenvolvimento                                     |
+| **Task**         | S3-T1.1 — integração LLM (pesquisa)                           |
+| **Sprint**       | 3                                                             |
+| **Módulo**       | assistente de IA (`AIAssistant.tsx` + fastAPI)                |
+| **Projeto**      | mapa de oportunidades de crédito inclusivo                    |
 | **Data**         | 11-05-2026                                                    |
-| **Status**       | em elaboração                                                 |
+| **Status**       | em desenvolvimento                                            |
 
 ---
 
