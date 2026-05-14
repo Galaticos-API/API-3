@@ -12,7 +12,7 @@ app = FastAPI(
 # Aceita requisições do frontend em dev (Vite :5173) e em prod (Docker :80)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:80", "http://localhost"],
+    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:80", "http://localhost", "*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
