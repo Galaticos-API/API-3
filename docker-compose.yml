@@ -13,6 +13,8 @@ services:
       - ./backend_python:/app
       # Sincroniza o banco de dados. Como o código aponta para parent/database, mapeamos aqui:
       - ./database:/database
+    env_file:
+      - .env
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
