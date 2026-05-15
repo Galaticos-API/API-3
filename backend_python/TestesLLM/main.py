@@ -73,28 +73,25 @@ def get_series(abrangencia=None, limit=30):
     finally:
         conn.close()
 
-def get_history(id_serie, sigla_uf=None, limit=24):
+def get_history(id_serie, data_inicio=None, data_fim=None, limit=24):
     """Lista o histórico completo de dados de uma série temporal."""
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
-        if sigla_uf:
-            cursor.execute("""
-                SELECT data_referencia as data, valor 
-                FROM fact_serie_temporal 
-                WHERE id_serie = ? AND sigla_uf = ?
-                ORDER BY data_referencia DESC
-                LIMIT ?
-            """, (id_serie, sigla_uf, limit))
-        else:
-            cursor.execute("""
-                SELECT data_referencia as data, valor 
-                FROM fact_serie_temporal 
-                WHERE id_serie = ? AND sigla_uf IS NULL
-                ORDER BY data_referencia DESC
-                LIMIT ?
-            """, (id_serie, limit))
+        query = "SELECT data_referencia as data, valor FROM fact_serie_temporal WHERE id_serie = ?"
+        params = [id_serie]
+        
+        if data_inicio:
+            query += " AND data_referencia >= ?"
+            params.append(data_inicio)
+        if data_fim:
+            query += " AND data_referencia <= ?"
+            params.append(data_fim)
             
+        query += " ORDER BY data_referencia DESC LIMIT ?"
+        params.append(limit)
+            
+        cursor.execute(query, tuple(params))
         rows = cursor.fetchall()
         return json.dumps([dict(row) for row in rows])
     except Exception as e:
@@ -147,9 +144,13 @@ tools = [
                         "type": "integer",
                         "description": "ID numérico da série. Identificador necessário para buscar dados.",
                     },
-                    "sigla_uf": {
+                    "data_inicio": {
                         "type": "string",
-                        "description": "Sigla da UF (ex: 'SP', 'RJ') para indicadores estaduais. Para indicadores nacionais ('Brasil'), omita ou passe nulo.",
+                        "description": "Filtro opcional de data inicial no formato YYYY-MM-DD (ex: '2018-01-01').",
+                    },
+                    "data_fim": {
+                        "type": "string",
+                        "description": "Filtro opcional de data final no formato YYYY-MM-DD.",
                     },
                     "limit": {
                         "type": "integer",
@@ -175,7 +176,7 @@ def chat_com_groq():
     messages = [
         {
             "role": "system",
-            "content": "Você é um agente de inteligência artificial técnico e direto, especializado em consultar e responder perguntas baseadas estritamente nos dados de um projeto de crédito inclusivo. Você possui acesso a ferramentas para buscar os estados (UFs), as séries temporais (indicadores) e os históricos de dados. Sempre que o usuário pedir dados de algum estado ou série, identifique os parâmetros e chame as funções necessárias. Use apenas as informações que as ferramentas retornarem para compor sua resposta."
+            "content": "Você é um agente técnico de IA para consulta de dados de crédito inclusivo. REGRAS CRÍTICAS:\n1. Cada estado e o Brasil possuem IDs de série ÚNICOS. NUNCA reutilize o id_serie de um estado para outro (ex: o ID do Acre não serve para Minas Gerais).\n2. Se o usuário perguntar sobre um estado (ex: MG, SP), SEMPRE chame primeiro get_series(abrangencia='MG') para descobrir os IDs corretos daquele estado.\n3. Para o nível nacional, chame get_series(abrangencia='Brasil').\n4. Use data_inicio e data_fim em get_history para filtrar datas quando especificado.\n5. Responda apenas baseado nos dados."
         }
     ]
 
@@ -195,84 +196,78 @@ def chat_com_groq():
         messages.append({"role": "user", "content": user_input})
 
         try:
-            # Primeira chamada para permitir que o modelo decida se usa ferramentas
-            response = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=messages,
-                tools=tools,
-                tool_choice="auto",
-                temperature=0.1,
-                max_tokens=2048,
-            )
-
-            response_message = response.choices[0].message
-            tool_calls = response_message.tool_calls
-
-            # Se o modelo decidiu chamar alguma função
-            if tool_calls:
-                tool_calls_dict = []
-                for t in tool_calls:
-                    tool_calls_dict.append({
-                        "id": t.id,
-                        "type": t.type,
-                        "function": {
-                            "name": t.function.name,
-                            "arguments": t.function.arguments
-                        }
-                    })
-                
-                messages.append({
-                    "role": response_message.role,
-                    "content": response_message.content,
-                    "tool_calls": tool_calls_dict
-                })
-                
-                for tool_call in tool_calls:
-                    function_name = tool_call.function.name
-                    function_to_call = available_functions[function_name]
-                    function_args = json.loads(tool_call.function.arguments)
-                    
-                    print(f"[*] Agente chamando ferramenta: {function_name}({function_args})")
-                    
-                    if function_name == "get_ufs":
-                        function_response = function_to_call()
-                    elif function_name == "get_series":
-                        function_response = function_to_call(
-                            abrangencia=function_args.get("abrangencia"),
-                            limit=function_args.get("limit", 30)
-                        )
-                    elif function_name == "get_history":
-                        function_response = function_to_call(
-                            id_serie=function_args.get("id_serie"),
-                            sigla_uf=function_args.get("sigla_uf"),
-                            limit=function_args.get("limit", 24)
-                        )
-
-                    messages.append(
-                        {
-                            "tool_call_id": tool_call.id,
-                            "role": "tool",
-                            "name": function_name,
-                            "content": function_response,
-                        }
-                    )
-                
-                # Segunda chamada com o resultado das funções
-                second_response = client.chat.completions.create(
+            while True:
+                response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=messages,
-                    temperature=0.3,
+                    tools=tools,
+                    tool_choice="auto",
+                    temperature=0.1,
                     max_tokens=2048,
                 )
-                
-                final_answer = second_response.choices[0].message.content
-                print(f"\nAgente: {final_answer}")
-                messages.append({"role": "assistant", "content": final_answer})
 
-            else:
-                final_answer = response_message.content
-                print(f"\nAgente: {final_answer}")
-                messages.append({"role": "assistant", "content": final_answer})
+                response_message = response.choices[0].message
+                tool_calls = response_message.tool_calls
+
+                # Se o modelo decidiu chamar alguma função
+                if tool_calls:
+                    tool_calls_dict = []
+                    for t in tool_calls:
+                        tool_calls_dict.append({
+                            "id": t.id,
+                            "type": t.type,
+                            "function": {
+                                "name": t.function.name,
+                                "arguments": t.function.arguments
+                            }
+                        })
+                    
+                    messages.append({
+                        "role": response_message.role,
+                        "content": response_message.content,
+                        "tool_calls": tool_calls_dict
+                    })
+                    
+                    # Se o agente enviou um texto explicando a ação antes da ferramenta, a gente imprime
+                    if response_message.content:
+                        print(f"\nAgente (Pensando): {response_message.content}")
+                    
+                    for tool_call in tool_calls:
+                        function_name = tool_call.function.name
+                        function_to_call = available_functions[function_name]
+                        function_args = json.loads(tool_call.function.arguments)
+                        
+                        print(f"[*] Agente chamando ferramenta: {function_name}({function_args})")
+                        
+                        if function_name == "get_ufs":
+                            function_response = function_to_call()
+                        elif function_name == "get_series":
+                            function_response = function_to_call(
+                                abrangencia=function_args.get("abrangencia"),
+                                limit=function_args.get("limit", 30)
+                            )
+                        elif function_name == "get_history":
+                            function_response = function_to_call(
+                                id_serie=function_args.get("id_serie"),
+                                data_inicio=function_args.get("data_inicio"),
+                                data_fim=function_args.get("data_fim"),
+                                limit=function_args.get("limit", 24)
+                            )
+
+                        messages.append(
+                            {
+                                "tool_call_id": tool_call.id,
+                                "role": "tool",
+                                "name": function_name,
+                                "content": function_response,
+                            }
+                        )
+                    # O loop continua para o agente processar o resultado e decidir o que fazer
+                else:
+                    final_answer = response_message.content
+                    print(f"\nAgente: {final_answer}")
+                    messages.append({"role": "assistant", "content": final_answer})
+                    break
 
         except Exception as e:
             print(f"\nErro ao conectar com Groq: {e}")
