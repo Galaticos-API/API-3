@@ -4,7 +4,8 @@ import { Button } from "../components/ui/button";
 import { Textarea } from "../components/ui/textarea";
 import { Badge } from "../components/ui/badge";
 import { Brain, Send, Sparkles, TrendingUp, MapPin, AlertCircle, CheckCircle } from "lucide-react";
-import { regionsData, kpiData } from "../data/mockData";
+import { kpiData } from "../data/mockData";
+import { api } from "../services/api";
 
 interface Message {
   id: string;
@@ -64,122 +65,10 @@ export function AIAssistant() {
     scrollToBottom();
   }, [messages]);
 
-  const generateResponse = (userQuestion: string): string => {
-    const lowerQuestion = userQuestion.toLowerCase();
-
-    // Análise de regiões com maior potencial
-    if (lowerQuestion.includes("maior potencial") || lowerQuestion.includes("melhores regiões") || lowerQuestion.includes("top")) {
-      const top3 = regionsData.sort((a, b) => b.score - a.score).slice(0, 3);
-      return `Com base na análise dos dados atuais, as 3 regiões com maior potencial de crédito são:
-
-1. **${top3[0].name}** (Score: ${top3[0].score.toFixed(1)})
-   - Potencial de crédito: R$ ${(top3[0].potencialCredito / 1000000).toFixed(0)}M
-   - Taxa de bancarização: ${top3[0].bancarizacao}%
-   - Inadimplência: ${top3[0].inadimplencia}%
-
-2. **${top3[1].name}** (Score: ${top3[1].score.toFixed(1)})
-   - Potencial de crédito: R$ ${(top3[1].potencialCredito / 1000000).toFixed(0)}M
-   - Taxa de bancarização: ${top3[1].bancarizacao}%
-   - Inadimplência: ${top3[1].inadimplencia}%
-
-3. **${top3[2].name}** (Score: ${top3[2].score.toFixed(1)})
-   - Potencial de crédito: R$ ${(top3[2].potencialCredito / 1000000).toFixed(0)}M
-   - Taxa de bancarização: ${top3[2].bancarizacao}%
-   - Inadimplência: ${top3[2].inadimplencia}%
-
-Essas regiões apresentam excelente combinação de alto potencial de mercado, boa bancarização e taxas de inadimplência controladas, tornando-as ideais para expansão sustentável.`;
-    }
-
-    // Análise de inadimplência
-    if (lowerQuestion.includes("inadimpl") || lowerQuestion.includes("menor risco")) {
-      const lowest = regionsData.reduce((prev, curr) => (curr.inadimplencia < prev.inadimplencia ? curr : prev));
-      return `A região com a **menor taxa de inadimplência** é:
-
-**${lowest.name}** - ${lowest.inadimplencia}%
-
-Esta região se destaca por:
-- Score de oportunidade de ${lowest.score.toFixed(1)} pontos
-- Taxa de bancarização de ${lowest.bancarizacao}%
-- População de ${(lowest.population / 1000000).toFixed(1)}M habitantes
-- Renda média de R$ ${lowest.rendaMedia.toFixed(0)}
-
-A baixa inadimplência indica um mercado maduro e com bom perfil de crédito, sendo uma excelente opção para operações de menor risco.`;
-    }
-
-    // Evolução do ticket médio
-    if (lowerQuestion.includes("ticket") || lowerQuestion.includes("evolução") || lowerQuestion.includes("crescimento")) {
-      return `A **evolução do ticket médio** apresenta tendência positiva consistente:
-
-📊 **Dados Atuais:**
-- Ticket médio nacional: R$ ${kpiData.ticketMedioNacional.toFixed(0)}
-- Crescimento mensal: +${kpiData.crescimentoMensal}%
-- Crescimento trimestral: +4.2%
-
-📈 **Análise de Tendência:**
-Nos últimos 12 meses, observamos crescimento gradual do ticket médio, partindo de R$ 2.850 em Jan/25 para R$ 3.580 em Fev/26. Isso indica:
-
-1. Maior capacidade de crédito da população
-2. Melhora nas condições econômicas regionais
-3. Amadurecimento do mercado de crédito inclusivo
-4. Confiança crescente nas operações
-
-💡 **Recomendação:** Este crescimento sustentado sugere oportunidade para produtos de crédito de maior valor agregado, especialmente nas regiões com score acima de 85 pontos.`;
-    }
-
-    // Fatores de influência
-    if (lowerQuestion.includes("fator") || lowerQuestion.includes("influenc") || lowerQuestion.includes("score") || lowerQuestion.includes("como")) {
-      return `O **score de oportunidade** é calculado com base em diversos fatores ponderados:
-
-🎯 **Principais Fatores:**
-
-1. **Taxa de Bancarização (peso: 30%)**
-   - Indica a penetração de serviços financeiros
-   - Maior bancarização = maior familiaridade com crédito
-
-2. **Taxa de Inadimplência (peso: 25%)**
-   - Avalia o risco de crédito da região
-   - Menor inadimplência = melhor score
-
-3. **Renda Média (peso: 20%)**
-   - Capacidade de pagamento da população
-   - Fundamental para sustentabilidade das operações
-
-4. **Densidade Populacional (peso: 15%)**
-   - Escala de mercado potencial
-   - Maior população = maior volume de operações
-
-5. **Potencial de Crédito (peso: 10%)**
-   - Volume financeiro disponível
-   - Baseado em demanda reprimida e capacidade econômica
-
-📊 **Exemplo Prático:**
-Uma região com 70% de bancarização, 3% de inadimplência, renda média de R$ 3.000 e 2M de habitantes tende a ter score acima de 85 pontos, indicando excelente oportunidade de expansão.`;
-    }
-
-    // Resposta padrão
-    return `Entendo sua pergunta sobre "${userQuestion}". 
-
-Com base nos dados do sistema, posso fornecer as seguintes informações:
-
-📊 **Visão Geral do Sistema:**
-- Total de regiões mapeadas: ${kpiData.regioesMapeadas}
-- Potencial total de crédito: R$ ${(kpiData.totalPotencial / 1000000000).toFixed(1)}B
-- Taxa de crescimento mensal: ${kpiData.crescimentoMensal}%
-
-Para análises mais específicas, você pode perguntar sobre:
-- Rankings regionais e scores de oportunidade
-- Indicadores de risco e inadimplência
-- Evolução temporal de métricas
-- Comparações entre regiões
-
-Como posso ajudar com mais detalhes?`;
-  };
-
-  const handleSendMessage = (text?: string) => {
+  const handleSendMessage = async (text?: string) => {
     const messageText = text || input.trim();
     if (!messageText) return;
 
-    // Adiciona mensagem do usuário
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
@@ -191,19 +80,33 @@ Como posso ajudar com mais detalhes?`;
     setInput("");
     setIsTyping(true);
 
-    // Simula tempo de processamento da IA
-    setTimeout(() => {
-      const response = generateResponse(messageText);
+    try {
+      // Formata o histórico pro formato que a API espera (excluindo a mensagem atual)
+      const historyToSend = messages
+        .filter(m => m.id !== "1") // Ignora a mensagem inicial de boas vindas
+        .map(m => ({ role: m.role, content: m.content }));
+
+      const data = await api.llm.chat(messageText, historyToSend);
+      
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: response,
+        content: data.response || "Desculpe, não consegui gerar uma resposta.",
         timestamp: new Date(),
       };
-
       setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error: any) {
+      console.error("Erro ao chamar LLM:", error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: "Desculpe, ocorreu um erro de conexão com o assistente inteligente. Tente novamente mais tarde.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleSuggestedQuestion = (question: string) => {

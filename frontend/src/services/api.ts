@@ -156,4 +156,18 @@ export const api = {
   etl: {
     status: () => get<{ status: string; categorias: unknown[] }>("/etl/status"),
   },
+  llm: {
+    chat: async (message: string, history: any[] = []) => {
+      const res = await fetch(`${BASE}/llm/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, history }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.detail ?? `HTTP ${res.status} em /llm/chat`);
+      }
+      return res.json() as Promise<{ response: string; history: any[] }>;
+    },
+  },
 };
