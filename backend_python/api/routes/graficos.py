@@ -10,6 +10,9 @@ import sqlite3
 from datetime import datetime, timedelta
 from typing import Optional
 from api.config import DB_FILENAME
+import json
+import numpy as np
+from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -397,11 +400,6 @@ def estudo_estado(sigla: str, anos: int = Query(5, ge=1, le=10)):
 
 @router.get("/score-oportunidade")
 def score_oportunidade():
-    """
-    GRF-08 — Ranking de Oportunidade (Score IOI 0–10) por estado.
-    Tenta primeiro a tabela ranking_oportunidade. Se vazia, calcula
-    o score dinamicamente a partir dos dados de inadimplência.
-    """
     conn = _get_conn()
     try:
         # Tenta tabela pré-computada
@@ -475,10 +473,7 @@ def score_oportunidade():
 
 @router.get("/monte-carlo/latest")
 def monte_carlo_latest():
-    """
-    GRF-09 — Última simulação Monte Carlo salva.
-    Retorna os parâmetros e as distribuições de perdas para o histograma + KDE.
-    """
+    
     conn = _get_conn()
     try:
         row = conn.execute("""
@@ -536,6 +531,122 @@ def monte_carlo_latest():
             "media_perdas": round(float(np.mean(perdas)), 2),
             "var_95_calculado": round(float(np.percentile(perdas, 95)), 2),
             "var_99_calculado": round(float(np.percentile(perdas, 99)), 2),
+        }
+    finally:
+        conn.close()
+
+# ─────────────────────────────────────────────
+# GRF-09  Monte Carlo — SALVAR simulação
+# ─────────────────────────────────────────────
+
+from pydantic import BaseModel
+
+
+class MonteCarloSalvarRequest(BaseModel):
+    sigla_uf: str                  # ex: "SP"
+    inadimplencia_projetada: float # ex: 4.03
+    ioi_score: float               # ex: 7.5
+    var_95: float                  # ex: 8500000.0
+    var_99: float                  # ex: 11200000.0
+    parametros: dict               # { investimento, iteracoes, retorno_esperado, volatilidade, lgd }
+
+
+@router.post("/monte-carlo/salvar")
+def monte_carlo_salvar(body: MonteCarloSalvarRequest):
+    
+    import json
+
+    conn = _get_conn()
+    try:
+        # Valida se a UF existe
+        uf = body.sigla_uf.upper()
+        uf_existe = conn.execute(
+            "SELECT 1 FROM dim_uf WHERE sigla_uf = ?", (uf,)
+        ).fetchone()
+        if not uf_existe:
+            raise HTTPException(status_code=400, detail=f"UF '{uf}' inválida.")
+
+        # Busca o usuário admin (id=1) como fallback
+        usuario_row = conn.execute(
+            "SELECT id FROM usuario ORDER BY id LIMIT 1"
+        ).fetchone()
+        if not usuario_row:
+            raise HTTPException(status_code=503, detail="Nenhum usuário encontrado no banco.")
+        usuario_id = usuario_row[0]
+
+        conn.execute("""
+            INSERT INTO fact_simulacao_risco
+                (usuario_id, sigla_uf, data_referencia,
+                 inadimplencia_projetada, ioi_score,
+                 var_95, var_99, parametros_json)
+            VALUES (?, ?, datetime('now'), ?, ?, ?, ?, ?)
+        """, (
+            usuario_id,
+            uf,
+            body.inadimplencia_projetada,
+            body.ioi_score,
+            body.var_95,
+            body.var_99,
+            json.dumps(body.parametros, ensure_ascii=False),
+        ))
+        conn.commit()
+
+        return {
+            "status": "success",
+            "message": "Simulação salva com sucesso.",
+            "sigla_uf": uf,
+        }
+    finally:
+        conn.close()
+
+
+
+@router.get("/monte-carlo/historico")
+def monte_carlo_historico(limite: int = Query(10, ge=1, le=50)):
+    import json
+
+    conn = _get_conn()
+    try:
+        rows = conn.execute("""
+            SELECT
+                s.id,
+                s.sigla_uf,
+                u_dim.nome       AS nome_uf,
+                s.inadimplencia_projetada,
+                s.ioi_score,
+                s.var_95,
+                s.var_99,
+                s.parametros_json,
+                s.criado_em
+            FROM fact_simulacao_risco s
+            JOIN dim_uf u_dim ON u_dim.sigla_uf = s.sigla_uf
+            ORDER BY s.criado_em DESC
+            LIMIT ?
+        """, (limite,)).fetchall()
+
+        simulacoes = []
+        for row in rows:
+            params = {}
+            try:
+                params = json.loads(row["parametros_json"]) if row["parametros_json"] else {}
+            except Exception:
+                pass
+
+            simulacoes.append({
+                "id":                     row["id"],
+                "sigla_uf":               row["sigla_uf"],
+                "nome_uf":                row["nome_uf"],
+                "inadimplencia_projetada": row["inadimplencia_projetada"],
+                "ioi_score":              row["ioi_score"],
+                "var_95":                 row["var_95"],
+                "var_99":                 row["var_99"],
+                "criado_em":              row["criado_em"],
+                "parametros":             params,
+            })
+
+        return {
+            "total": len(simulacoes),
+            "simulacoes": simulacoes,
         }
     finally:
         conn.close()
