@@ -242,9 +242,9 @@ export function Dashboard() {
             <CardDescription>Score de oportunidade por estado (0–10)</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-0" style={{ minHeight: 340 }}>
+            <div className="flex flex-col md:flex-row gap-4 md:gap-0" style={{ minHeight: 340 }}>
               {/* Lista */}
-              <div className="w-1/2 space-y-1 overflow-y-auto pr-2" style={{ maxHeight: 340 }}>
+              <div className="w-full md:w-1/2 space-y-1 overflow-y-auto md:pr-2" style={{ maxHeight: 340 }}>
                 {grf08.loading ? (
                   <div className="flex items-center justify-center h-40 text-sm text-muted-foreground gap-2">
                     <RefreshCw className="w-4 h-4 animate-spin" /> Carregando...
@@ -281,9 +281,9 @@ export function Dashboard() {
                   })
                 )}
               </div>
-              <div className="w-px bg-border mx-3" />
+              <div className="hidden md:block w-px bg-border mx-3" />
               {/* Detalhe */}
-              <div className="w-1/2 pl-1">
+              <div className="w-full md:w-1/2 md:pl-1">
                 {selectedRankingItem ? (
                   <>
                     <div className="flex items-center justify-between mb-2">
