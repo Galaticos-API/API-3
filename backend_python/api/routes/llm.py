@@ -171,7 +171,7 @@ available_functions = {
 
 class ChatMessage(BaseModel):
     role: str
-    content: str
+    content: Optional[str] = None
     
 class ChatRequest(BaseModel):
     message: str
@@ -201,10 +201,11 @@ async def chat_with_llm(request: ChatRequest):
     
     # Adicionar histórico anterior
     for msg in request.history:
-        # Apenas passamos para frente o que for de user e assistant para simplificar (sem os tools)
-        # Se você quiser manter os tool_calls na requisição, a tipagem ficaria mais complexa
-        if msg.role in ["user", "assistant"]:
-            messages.append({"role": msg.role, "content": msg.content})
+        # Apenas passamos para frente o que for de user e assistant com conteúdo válido para evitar erros de validação da API
+        if msg.role == "user" and msg.content:
+            messages.append({"role": "user", "content": msg.content})
+        elif msg.role == "assistant" and msg.content:
+            messages.append({"role": "assistant", "content": msg.content})
             
     # Adicionar a nova mensagem do usuário
     messages.append({"role": "user", "content": request.message})
