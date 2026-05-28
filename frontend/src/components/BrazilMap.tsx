@@ -10,9 +10,9 @@ interface BrazilMapProps {
 }
 
 function getScoreColor(score: number) {
-  if (score >= 85) return { fill: "#202AD0", stroke: "#1A22A8" }; // DM Blue
-  if (score >= 75) return { fill: "#4A53D8", stroke: "#3E46C1" }; // Lighter Blue 1
-  if (score >= 65) return { fill: "#747CE0", stroke: "#6168C2" }; // Lighter Blue 2
+  if (score >= 7) return { fill: "#202AD0", stroke: "#1A22A8" }; // DM Blue
+  if (score >= 6) return { fill: "#4A53D8", stroke: "#3E46C1" }; // Lighter Blue 1
+  if (score >= 5) return { fill: "#747CE0", stroke: "#6168C2" }; // Lighter Blue 2
   if (score > 0) return { fill: "#9EA5E8", stroke: "#858BC6" }; // Lighter Blue 3
   return { fill: "#C8CCF0", stroke: "#A5A9C9" }; // Empty/Pale
 }
@@ -66,6 +66,8 @@ export function BrazilMap({ data, selectedState, onStateClick }: BrazilMapProps)
             geographies.map((geo: any) => {
               const uf = nameToUF[geo.properties.name] || "";
               const score = stateScores[uf] || 0;
+              console.log(score);
+
               const isSelected = selectedState === uf;
               const isHovered = hovered === uf;
               const { fill, stroke } = getScoreColor(score);
@@ -127,10 +129,10 @@ export function BrazilMap({ data, selectedState, onStateClick }: BrazilMapProps)
       {/* Legenda */}
       <div className="flex items-center justify-center gap-4 flex-wrap mt-4">
         {[
-          { color: "#202AD0", label: "Top (≥85)" },
-          { color: "#4A53D8", label: "Bom (75–84)" },
-          { color: "#747CE0", label: "Médio (65–74)" },
-          { color: "#9EA5E8", label: "Regular (<65)" },
+          { color: "#202AD0", label: "Top: >= 7.1" },
+          { color: "#4A53D8", label: "Bom: entre 6.1 e 7.0" },
+          { color: "#747CE0", label: "Médio: entre 5.1 e 6.0" },
+          { color: "#9EA5E8", label: "Regular: entre 0.0 e 5.0" },
         ].map(({ color, label }) => (
           <div key={label} className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
             <div className="w-3 h-3 rounded-sm" style={{ background: color }} />
