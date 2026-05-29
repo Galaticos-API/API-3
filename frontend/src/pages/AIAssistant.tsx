@@ -133,7 +133,7 @@ export function AIAssistant() {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Chat Interface */}
-        <Card className="lg:col-span-3 flex flex-col h-[calc(100vh-280px)]">
+        <Card className="lg:col-span-3 flex flex-col min-h-[500px] lg:h-[calc(100vh-280px)]">
           <CardHeader className="border-b">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
