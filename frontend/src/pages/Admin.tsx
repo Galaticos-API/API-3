@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Database, Play, Trash2, RefreshCw, AlertCircle, CheckCircle2, ShieldAlert, Loader2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Database, Play, Trash2, RefreshCw, AlertCircle, CheckCircle2, ShieldAlert, Loader2, TerminalSquare, X } from "lucide-react";
 import { api, BASE } from "../services/api";
 
 export function Admin() {
@@ -7,6 +7,9 @@ export function Admin() {
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info', text: string } | null>(null);
   const [etlStatus, setEtlStatus] = useState<any>(null);
   const [etlProgress, setEtlProgress] = useState<{ atual: number, total: number, mensagem: string } | null>(null);
+  const [terminalLogs, setTerminalLogs] = useState<string[]>([]);
+  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
+  const terminalEndRef = useRef<HTMLDivElement>(null);
 
   const fetchEtlStatus = async () => {
     try {
@@ -21,6 +24,13 @@ export function Admin() {
   useEffect(() => {
     fetchEtlStatus();
   }, []);
+
+  // Scroll automático do terminal
+  useEffect(() => {
+    if (terminalEndRef.current) {
+      terminalEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [terminalLogs, isTerminalOpen]);
 
   const handleCreateDB = async () => {
     if (!confirm("Tem certeza que deseja recriar o banco de dados? Isso pode sobrescrever dados existentes.")) return;
@@ -54,10 +64,17 @@ export function Admin() {
 
   const handleRunETL = async () => {
     setLoading("etl");
-    setEtlProgress({ atual: 0, total: 1, mensagem: 'Iniciando conexão...' });
-    setMessage({ type: 'info', text: 'Executando pipeline ETL... Isso pode demorar alguns minutos.' });
+    setTerminalLogs([]);
+    setIsTerminalOpen(true);
+    setEtlProgress({ atual: 0, total: 1, mensagem: 'Iniciando conexão com a API do ETL...' });
+    setMessage({ type: 'info', text: 'Executando pipeline ETL via API... Isso pode demorar alguns minutos.' });
+    
+    // Adiciona log inicial
+    const logInitial = `[${new Date().toLocaleTimeString()}] Iniciando chamada na rota /api/v1/etl/stream...`;
+    setTerminalLogs([logInitial]);
     
     try {
+      // Faz a chamada diretamente na rota da API do Backend, não rodando o script python local
       const response = await fetch(`${BASE}/etl/stream`);
       
       if (!response.body) throw new Error('Não foi possível ler o stream do servidor.');
@@ -77,6 +94,11 @@ export function Admin() {
           try {
             const data = JSON.parse(line);
             
+            // Adiciona ao terminal
+            const timestamp = new Date().toLocaleTimeString();
+            const logLine = `[${timestamp}] [${data.tipo.toUpperCase()}] ${data.mensagem}`;
+            setTerminalLogs(prev => [...prev, logLine]);
+
             if (data.tipo === 'progresso') {
               setEtlProgress({ atual: data.atual, total: data.total, mensagem: data.mensagem });
             } else if (data.tipo === 'info' || data.tipo === 'log') {
@@ -91,9 +113,11 @@ export function Admin() {
       }
 
       setMessage({ type: 'success', text: 'ETL executado com sucesso!' });
+      setTerminalLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] Pipeline ETL finalizado com sucesso.`]);
       fetchEtlStatus();
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message || 'Erro ao executar ETL.' });
+      setTerminalLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] [ERRO] ${error.message || 'Falha ao executar ETL.'}`]);
     } finally {
       setLoading(null);
       // Mantém o progresso finalizado visível por alguns segundos
@@ -193,6 +217,17 @@ export function Admin() {
               {loading === "etl" ? "Executando ETL..." : "Executar Ingestão de Dados"}
             </button>
 
+            {/* Botão de abrir terminal mesmo fora de execução, caso haja logs */}
+            {(terminalLogs.length > 0 || loading === "etl") && (
+              <button
+                onClick={() => setIsTerminalOpen(true)}
+                className="w-full mt-2 flex items-center justify-center gap-2 border border-border hover:bg-gray-50 text-vocedm-navy py-2 rounded-xl transition-all font-medium text-sm"
+              >
+                <TerminalSquare className="w-4 h-4" />
+                Abrir Terminal de Logs
+              </button>
+            )}
+
             {etlProgress && (
               <div className="mt-4 p-4 border border-vocedm-teal bg-vocedm-teal/10 rounded-xl space-y-3">
                 <div className="flex justify-between items-center text-sm">
@@ -248,6 +283,57 @@ export function Admin() {
           </div>
         </div>
       </div>
+
+      {/* Modal de Terminal */}
+      {isTerminalOpen && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+          <div className="bg-[#1e1e1e] border border-gray-700 w-full max-w-3xl rounded-xl shadow-2xl overflow-hidden flex flex-col h-[60vh]">
+            {/* Header do Terminal */}
+            <div className="bg-[#2d2d2d] border-b border-gray-700 px-4 py-3 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2 text-gray-300">
+                <TerminalSquare className="w-4 h-4" />
+                <span className="text-sm font-medium font-mono">etl_pipeline_stdout</span>
+              </div>
+              <button 
+                onClick={() => setIsTerminalOpen(false)}
+                className="text-gray-400 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            {/* Corpo do Terminal (Logs) */}
+            <div className="p-4 overflow-y-auto flex-1 font-mono text-sm space-y-1 bg-[#1e1e1e]">
+              {terminalLogs.length === 0 ? (
+                <p className="text-gray-500 italic">Nenhum log disponível...</p>
+              ) : (
+                terminalLogs.map((log, index) => {
+                  // Colore partes do log com base na severidade/tipo
+                  const isError = log.includes("[ERRO") || log.includes("[AVISO");
+                  const isSuccess = log.includes("[SUCESSO") || log.includes("[CONCLUIDO");
+                  return (
+                    <div key={index} className={
+                      isError ? "text-red-400" : 
+                      isSuccess ? "text-green-400" : 
+                      "text-gray-300"
+                    }>
+                      {log}
+                    </div>
+                  );
+                })
+              )}
+              {loading === "etl" && (
+                <div className="flex items-center gap-2 text-gray-500 mt-2">
+                  <span className="w-2 h-4 bg-gray-400 animate-pulse"></span>
+                  <span className="italic text-xs">Aguardando novos eventos...</span>
+                </div>
+              )}
+              {/* Elemento âncora para scroll automático */}
+              <div ref={terminalEndRef} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
