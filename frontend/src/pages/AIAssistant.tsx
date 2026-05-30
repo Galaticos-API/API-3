@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../co
 import { Button } from "../components/ui/button";
 import { Textarea } from "../components/ui/textarea";
 import { Badge } from "../components/ui/badge";
-import { Brain, Send, Sparkles, TrendingUp, MapPin, AlertCircle, CheckCircle } from "lucide-react";
-import { kpiData } from "../data/mockData";
+import { Brain, Send, Database, LineChart, MapPin, Activity } from "lucide-react";
 import { api } from "../services/api";
 
 interface Message {
@@ -26,34 +25,35 @@ export function AIAssistant() {
       id: "1",
       role: "assistant",
       content:
-        "Olá! Sou o assistente de IA do Mapa de Oportunidades. Posso ajudá-lo a analisar dados de crédito inclusivo, identificar regiões promissoras, interpretar indicadores e gerar insights estratégicos. Como posso ajudar hoje?",
+        "Olá! Sou o assistente de IA especializado em dados de crédito inclusivo. Tenho acesso ao banco de dados e posso ajudá-lo a consultar estados, listar o catálogo de indicadores e analisar o histórico de séries temporais. Como posso ajudar hoje?",
       timestamp: new Date(),
     },
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [dbStatus, setDbStatus] = useState({ ufs: 0, loading: true });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const suggestedQuestions: SuggestedQuestion[] = [
     {
       id: "1",
-      question: "Quais são as 3 regiões com maior potencial de crédito?",
-      icon: TrendingUp,
+      question: "Quais são os indicadores disponíveis sobre inadimplência?",
+      icon: Database,
     },
     {
       id: "2",
-      question: "Qual região tem a menor taxa de inadimplência?",
-      icon: CheckCircle,
+      question: "Consulte o histórico de inadimplência PJ de São Paulo.",
+      icon: LineChart,
     },
     {
       id: "3",
-      question: "Como está a evolução do ticket médio?",
-      icon: Sparkles,
+      question: "Quais estados do Brasil estão disponíveis na base?",
+      icon: MapPin,
     },
     {
       id: "4",
-      question: "Quais fatores influenciam o score de oportunidade?",
-      icon: AlertCircle,
+      question: "Mostre os dados da série temporal de saldo de crédito PF.",
+      icon: Activity,
     },
   ];
 
@@ -64,6 +64,18 @@ export function AIAssistant() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    async function fetchStatus() {
+      try {
+        const ufs = await api.ufs.listar();
+        setDbStatus({ ufs: ufs.length, loading: false });
+      } catch (err) {
+        setDbStatus({ ufs: 0, loading: false });
+      }
+    }
+    fetchStatus();
+  }, []);
 
   const handleSendMessage = async (text?: string) => {
     const messageText = text || input.trim();
@@ -123,11 +135,11 @@ export function AIAssistant() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold text-gray-900">Assistente de IA</h2>
-          <p className="text-gray-500 mt-1">Análise inteligente de dados e geração de insights</p>
+          <p className="text-gray-500 mt-1">Integração LLaMA 3.3 com o banco de dados via chamadas de ferramentas</p>
         </div>
-        <div className="flex items-center gap-2 bg-green-50 px-4 py-2 rounded-lg border border-green-200">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-sm font-medium text-green-700">IA Online</span>
+        <div className="flex items-center gap-2 bg-green-50 px-4 py-2 rounded-lg border border-green-200 shadow-sm">
+          <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+          <span className="text-sm font-semibold text-green-700">Modelo Online</span>
         </div>
       </div>
 
@@ -136,12 +148,12 @@ export function AIAssistant() {
         <Card className="lg:col-span-3 flex flex-col min-h-[500px] lg:h-[calc(100vh-280px)]">
           <CardHeader className="border-b">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
                 <Brain className="w-6 h-6 text-white" />
               </div>
               <div>
-                <CardTitle>Assistente Inteligente</CardTitle>
-                <CardDescription>Baseado em GPT-4 com dados do sistema</CardDescription>
+                <CardTitle>Agente de Dados</CardTitle>
+                <CardDescription>LLaMA 3.3 70B (Groq) com RAG / Tools</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -236,62 +248,64 @@ export function AIAssistant() {
           </Card>
 
           {/* Capacidades */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Capacidades da IA</CardTitle>
+          <Card className="border-t-4 border-t-purple-500 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Capacidades Reais da IA</CardTitle>
+              <CardDescription>As ferramentas que o modelo utiliza</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-start gap-2">
-                <Sparkles className="w-4 h-4 text-purple-600 mt-0.5" />
+            <CardContent className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="bg-purple-100 p-2 rounded-md mt-0.5">
+                  <MapPin className="w-4 h-4 text-purple-700" />
+                </div>
                 <div>
-                  <p className="text-sm font-medium">Análise Preditiva</p>
-                  <p className="text-xs text-gray-600">Identifica tendências e padrões</p>
+                  <p className="text-sm font-medium text-gray-800">Consultar UFs</p>
+                  <p className="text-xs text-gray-500">Mapeia os estados do Brasil e regiões</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 text-green-600 mt-0.5" />
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-100 p-2 rounded-md mt-0.5">
+                  <Database className="w-4 h-4 text-blue-700" />
+                </div>
                 <div>
-                  <p className="text-sm font-medium">Insights Regionais</p>
-                  <p className="text-xs text-gray-600">Compara e ranqueia territórios</p>
+                  <p className="text-sm font-medium text-gray-800">Catálogo de Séries</p>
+                  <p className="text-xs text-gray-500">Lista indicadores e seus identificadores únicos</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-2">
-                <TrendingUp className="w-4 h-4 text-blue-600 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium">Recomendações</p>
-                  <p className="text-xs text-gray-600">Sugere estratégias de expansão</p>
+              <div className="flex items-start gap-3">
+                <div className="bg-green-100 p-2 rounded-md mt-0.5">
+                  <LineChart className="w-4 h-4 text-green-700" />
                 </div>
-              </div>
-
-              <div className="flex items-start gap-2">
-                <Brain className="w-4 h-4 text-indigo-600 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium">Linguagem Natural</p>
-                  <p className="text-xs text-gray-600">Explica conceitos complexos</p>
+                  <p className="text-sm font-medium text-gray-800">Histórico Temporal</p>
+                  <p className="text-xs text-gray-500">Analisa a evolução dos dados filtrados por data</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Status */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Dados Conectados</CardTitle>
+          <Card className="border-t-4 border-t-indigo-500 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Integração de Dados</CardTitle>
+              <CardDescription>Status das conexões</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-3">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Regiões</span>
-                <Badge variant="secondary">{kpiData.regioesMapeadas}</Badge>
+                <span className="text-gray-600 font-medium">Estados Mapeados</span>
+                <Badge variant="secondary" className="bg-indigo-50 text-indigo-700">
+                  {dbStatus.loading ? "..." : dbStatus.ufs} UFs
+                </Badge>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Séries Temporais</span>
-                <Badge variant="secondary">15 meses</Badge>
+                <span className="text-gray-600 font-medium">Banco de Dados</span>
+                <Badge variant="secondary" className="bg-green-50 text-green-700">SQLite</Badge>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Indicadores</span>
-                <Badge variant="secondary">8 métricas</Badge>
+                <span className="text-gray-600 font-medium">Provedor LLM</span>
+                <Badge variant="secondary" className="bg-purple-50 text-purple-700">Groq API</Badge>
               </div>
             </CardContent>
           </Card>
