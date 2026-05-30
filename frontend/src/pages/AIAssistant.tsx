@@ -147,10 +147,22 @@ export function AIAssistant() {
             {llmStatus.loading ? "Carregando informações do modelo..." : `Integração ${llmStatus.model} com o banco de dados via chamadas de ferramentas`}
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-green-50 px-4 py-2 rounded-lg border border-green-200 shadow-sm">
-          <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
-          <span className="text-sm font-semibold text-green-700">Modelo Online</span>
-        </div>
+        {llmStatus.loading ? (
+          <div className="flex items-center gap-2 bg-yellow-50 px-4 py-2 rounded-lg border border-yellow-200 shadow-sm">
+            <div className="w-2.5 h-2.5 bg-yellow-500 rounded-full animate-pulse"></div>
+            <span className="text-sm font-semibold text-yellow-700">Conectando...</span>
+          </div>
+        ) : llmStatus.model !== "Desconhecido" ? (
+          <div className="flex items-center gap-2 bg-green-50 px-4 py-2 rounded-lg border border-green-200 shadow-sm">
+            <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+            <span className="text-sm font-semibold text-green-700">Modelo Online</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 bg-red-50 px-4 py-2 rounded-lg border border-red-200 shadow-sm">
+            <div className="w-2.5 h-2.5 bg-red-500 rounded-full"></div>
+            <span className="text-sm font-semibold text-red-700">Offline</span>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

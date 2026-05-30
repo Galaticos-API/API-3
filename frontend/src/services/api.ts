@@ -154,7 +154,7 @@ export const api = {
     monteCarlo:             ()             => get<MonteCarloData>("/graficos/monte-carlo/latest"),
   },
   etl: {
-    status: () => get<{ status: string; categorias: unknown[] }>("/etl/status"),
+    status: () => get<{ status: string; categorias: { categoria: string; ultima_ingestao: string; total_registros: number }[] }>("/etl/status"),
   },
   llm: {
     status: () => get<{ model: string; provider: string }>("/llm/status"),
