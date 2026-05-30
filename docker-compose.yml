@@ -17,6 +17,7 @@ services:
       - .env
     environment:
       - PYTHONUNBUFFERED=1
+      - WATCHFILES_FORCE_POLLING=true
     restart: unless-stopped
 
   frontend:
