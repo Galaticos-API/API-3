@@ -3,7 +3,8 @@ import logging
 from pathlib import Path
 import sqlite3
 
-from etl_bcb import rodar_etl
+from fastapi.responses import StreamingResponse
+from etl_bcb import rodar_etl, rodar_etl_generator
 from api.config import DB_FILENAME
 
 router = APIRouter()
@@ -31,6 +32,13 @@ def executar_etl():
     except Exception as e:
         logger.error(f"Erro ao rodar ETL: {e}")
         raise HTTPException(status_code=500, detail=f"O processo ETL falhou: {str(e)}")
+
+@router.get("/stream")
+def executar_etl_stream():
+    """
+    Dispara a atualização completa de dados via API do BCB e retorna stream de progresso.
+    """
+    return StreamingResponse(rodar_etl_generator(), media_type="text/event-stream")
 
 
 @router.get("/status")

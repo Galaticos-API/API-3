@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation } from "react-router";
-import { BarChart3, Activity, Brain, MapPin, Menu, X } from "lucide-react";
+import { BarChart3, Activity, Brain, MapPin, Menu, X, Settings } from "lucide-react";
 import { cn } from "./ui/utils";
 import { api } from "../services/api";
 
@@ -47,6 +47,7 @@ export function RootLayout() {
     { name: "Dashboard", href: "/", icon: BarChart3 },
     { name: "Simulação Monte Carlo", href: "/simulacao", icon: Activity },
     { name: "Assistente IA", href: "/assistente", icon: Brain },
+    { name: "Administração", href: "/admin", icon: Settings },
   ];
 
   return (
