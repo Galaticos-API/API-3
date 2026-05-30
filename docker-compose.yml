@@ -23,9 +23,16 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      target: builder
     container_name: api3-frontend
+    command: npm run dev -- --host 0.0.0.0 --port 80
     ports:
       - "80:80"   # Acesse o frontend via http://localhost:80/
+    volumes:
+      # Sincroniza o código do frontend com o container para hot-reload
+      - ./frontend:/app
+      # Evita que a pasta node_modules do host sobrescreva a do container
+      - /app/node_modules
     depends_on:
       - backend
     restart: unless-stopped

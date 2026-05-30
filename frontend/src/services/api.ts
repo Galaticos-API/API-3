@@ -157,6 +157,7 @@ export const api = {
     status: () => get<{ status: string; categorias: unknown[] }>("/etl/status"),
   },
   llm: {
+    status: () => get<{ model: string; provider: string }>("/llm/status"),
     chat: async (message: string, history: any[] = []) => {
       const res = await fetch(`${BASE}/llm/chat`, {
         method: "POST",

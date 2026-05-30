@@ -32,6 +32,7 @@ export function AIAssistant() {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [dbStatus, setDbStatus] = useState({ ufs: 0, loading: true });
+  const [llmStatus, setLlmStatus] = useState({ model: "Carregando...", provider: "...", loading: true });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const suggestedQuestions: SuggestedQuestion[] = [
@@ -72,6 +73,13 @@ export function AIAssistant() {
         setDbStatus({ ufs: ufs.length, loading: false });
       } catch (err) {
         setDbStatus({ ufs: 0, loading: false });
+      }
+      
+      try {
+        const llmInfo = await api.llm.status();
+        setLlmStatus({ model: llmInfo.model, provider: llmInfo.provider, loading: false });
+      } catch (err) {
+        setLlmStatus({ model: "Desconhecido", provider: "Desconhecido", loading: false });
       }
     }
     fetchStatus();
@@ -135,7 +143,9 @@ export function AIAssistant() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold text-gray-900">Assistente de IA</h2>
-          <p className="text-gray-500 mt-1">Integração LLaMA 3.3 com o banco de dados via chamadas de ferramentas</p>
+          <p className="text-gray-500 mt-1">
+            {llmStatus.loading ? "Carregando informações do modelo..." : `Integração ${llmStatus.model} com o banco de dados via chamadas de ferramentas`}
+          </p>
         </div>
         <div className="flex items-center gap-2 bg-green-50 px-4 py-2 rounded-lg border border-green-200 shadow-sm">
           <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
@@ -153,7 +163,9 @@ export function AIAssistant() {
               </div>
               <div>
                 <CardTitle>Agente de Dados</CardTitle>
-                <CardDescription>LLaMA 3.3 70B (Groq) com RAG / Tools</CardDescription>
+                <CardDescription>
+                  {llmStatus.loading ? "..." : `${llmStatus.model} (${llmStatus.provider}) com RAG / Tools`}
+                </CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -305,7 +317,9 @@ export function AIAssistant() {
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600 font-medium">Provedor LLM</span>
-                <Badge variant="secondary" className="bg-purple-50 text-purple-700">Groq API</Badge>
+                <Badge variant="secondary" className="bg-purple-50 text-purple-700">
+                  {llmStatus.loading ? "..." : llmStatus.provider}
+                </Badge>
               </div>
             </CardContent>
           </Card>

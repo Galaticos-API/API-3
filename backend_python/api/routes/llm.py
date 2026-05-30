@@ -245,6 +245,13 @@ class ChatResponse(BaseModel):
     history: List[Dict[str, Any]]
 
 
+@router.get("/status")
+def get_llm_status():
+    return {
+        "model": "llama-3.3-70b-versatile",
+        "provider": "Groq"
+    }
+
 @router.post("/chat", response_model=ChatResponse)
 async def chat_with_llm(request: ChatRequest):
     fallback_client._initialize_clients()
