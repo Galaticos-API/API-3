@@ -22,72 +22,9 @@ load_dotenv(root_dotenv)
 DIRETORIO_BANCO = Path(__file__).resolve().parent.parent.parent.parent / "database"
 db_path = DIRETORIO_BANCO / DB_FILENAME
 
-class FallbackGroqClient:
-    def __init__(self):
-        self.clients = []
-        self.current_index = 0
-        self._initialized = False
-
-    def _initialize_clients(self):
-        if self._initialized:
-            return
-            
-        self.api_keys = []
-        for i in range(1, 6):
-            key = os.getenv(f"GroqKey{i}")
-            if key and key.strip():
-                self.api_keys.append((f"GroqKey{i}", key.strip()))
-        
-        self.clients = []
-        for name, key in self.api_keys:
-            try:
-                self.clients.append({
-                    "name": name,
-                    "client": Groq(api_key=key)
-                })
-            except Exception as e:
-                logger.error(f"Erro ao instanciar o cliente Groq para a chave {name}: {e}")
-                
-        self._initialized = True
-
-    def execute_with_fallback(self, **kwargs):
-        self._initialize_clients()
-        
-        if not self.clients:
-            raise HTTPException(
-                status_code=500,
-                detail="Nenhuma chave de API do Groq válida configurada (esperadas chaves de GroqKey1 a GroqKey5 no arquivo .env)."
-            )
-            
-        attempts = 0
-        max_attempts = len(self.clients)
-        last_error = None
-        
-        while attempts < max_attempts:
-            client_info = self.clients[self.current_index]
-            client_name = client_info["name"]
-            client_obj = client_info["client"]
-            
-            try:
-                response = client_obj.chat.completions.create(**kwargs)
-                return response
-            except Exception as e:
-                last_error = e
-                logger.warning(
-                    f"Falha na chamada com a chave {client_name}. Erro: {e}. "
-                    f"Tentando a próxima chave disponível..."
-                )
-                self.current_index = (self.current_index + 1) % len(self.clients)
-                attempts += 1
-                
-        logger.error(f"Todas as chaves Groq configuradas falharam. Último erro: {last_error}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Todas as chaves da API do Groq falharam ou atingiram o limite. Último erro: {str(last_error)}"
-        )
-
-# Inicializar o gerenciador de fallback do Groq
-fallback_client = FallbackGroqClient()
+# Inicializar o cliente Groq
+api_key = os.getenv("GroqKey1")
+client = Groq(api_key=api_key) if api_key else None
 
 
 def get_db_connection():
@@ -234,7 +171,7 @@ available_functions = {
 
 class ChatMessage(BaseModel):
     role: str
-    content: Optional[str] = None
+    content: str
     
 class ChatRequest(BaseModel):
     message: str
@@ -254,9 +191,13 @@ def get_llm_status():
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat_with_llm(request: ChatRequest):
-    fallback_client._initialize_clients()
-    if not fallback_client.clients:
-        raise HTTPException(status_code=500, detail="Nenhuma chave da API do Groq (GroqKey1 a GroqKey5) configurada no servidor.")
+    global client
+    if not client:
+        api_key = os.getenv("GroqKey1")
+        if api_key:
+            client = Groq(api_key=api_key)
+        else:
+            raise HTTPException(status_code=500, detail="Chave da API do Groq (GroqKey1) não configurada no servidor.")
         
     messages = [
         {
@@ -267,18 +208,17 @@ async def chat_with_llm(request: ChatRequest):
     
     # Adicionar histórico anterior
     for msg in request.history:
-        # Apenas passamos para frente o que for de user e assistant com conteúdo válido para evitar erros de validação da API
-        if msg.role == "user" and msg.content:
-            messages.append({"role": "user", "content": msg.content})
-        elif msg.role == "assistant" and msg.content:
-            messages.append({"role": "assistant", "content": msg.content})
+        # Apenas passamos para frente o que for de user e assistant para simplificar (sem os tools)
+        # Se você quiser manter os tool_calls na requisição, a tipagem ficaria mais complexa
+        if msg.role in ["user", "assistant"]:
+            messages.append({"role": msg.role, "content": msg.content})
             
     # Adicionar a nova mensagem do usuário
     messages.append({"role": "user", "content": request.message})
     
     try:
         while True:
-            response = fallback_client.execute_with_fallback(
+            response = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=messages,
                 tools=tools,

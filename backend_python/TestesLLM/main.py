@@ -14,67 +14,15 @@ backend_dotenv = os.path.join(os.path.dirname(__file__), '..', '.env')
 load_dotenv(root_dotenv)
 load_dotenv(backend_dotenv)
 
-class FallbackGroqClient:
-    def __init__(self):
-        self.clients = []
-        self.current_index = 0
-        self._initialized = False
+# Buscar a chave GroqKey1
+api_key = os.getenv("GroqKey1")
 
-    def _initialize_clients(self):
-        if self._initialized:
-            return
-            
-        self.api_keys = []
-        for i in range(1, 6):
-            key = os.getenv(f"GroqKey{i}")
-            if key and key.strip():
-                self.api_keys.append((f"GroqKey{i}", key.strip()))
-        
-        self.clients = []
-        for name, key in self.api_keys:
-            try:
-                self.clients.append({
-                    "name": name,
-                    "client": Groq(api_key=key)
-                })
-            except Exception as e:
-                print(f"Erro ao instanciar o cliente Groq para a chave {name}: {e}")
-                
-        self._initialized = True
-
-    def execute_with_fallback(self, **kwargs):
-        self._initialize_clients()
-        
-        if not self.clients:
-            raise RuntimeError("Nenhuma chave de API do Groq válida configurada (esperadas chaves de GroqKey1 a GroqKey5 no arquivo .env).")
-            
-        attempts = 0
-        max_attempts = len(self.clients)
-        last_error = None
-        
-        while attempts < max_attempts:
-            client_info = self.clients[self.current_index]
-            client_name = client_info["name"]
-            client_obj = client_info["client"]
-            
-            try:
-                response = client_obj.chat.completions.create(**kwargs)
-                return response
-            except Exception as e:
-                last_error = e
-                print(f"\n[!] Falha na chamada com a chave {client_name}. Erro: {e}. Tentando a próxima chave disponível...")
-                self.current_index = (self.current_index + 1) % len(self.clients)
-                attempts += 1
-                
-        raise RuntimeError(f"Todas as chaves da API do Groq falharam ou atingiram o limite. Último erro: {str(last_error)}")
-
-# Inicializar o gerenciador de fallback do Groq
-fallback_client = FallbackGroqClient()
-fallback_client._initialize_clients()
-
-if not fallback_client.clients:
-    print("Erro: Nenhuma chave da API do Groq (GroqKey1 a GroqKey5) foi encontrada nos arquivos .env")
+if not api_key:
+    print("Erro: A chave 'GroqKey1' não foi encontrada nos arquivos .env")
     exit(1)
+
+# Inicializar o cliente Groq
+client = Groq(api_key=api_key)
 
 # Caminho do banco de dados SQLite
 db_path = Path(__file__).resolve().parent.parent.parent / "database" / "credito_inclusivo.db"
@@ -249,7 +197,7 @@ def chat_com_groq():
 
         try:
             while True:
-                response = fallback_client.execute_with_fallback(
+                response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=messages,
                     tools=tools,
