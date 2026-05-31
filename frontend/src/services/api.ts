@@ -3,7 +3,7 @@
  * Base URL configurada via VITE_API_URL no .env.
  */
 
-const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api/v1";
+export const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api/v1";
 
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE}${path}`);
@@ -154,6 +154,38 @@ export const api = {
     monteCarlo:             ()             => get<MonteCarloData>("/graficos/monte-carlo/latest"),
   },
   etl: {
-    status: () => get<{ status: string; categorias: unknown[] }>("/etl/status"),
+    status: () => get<{ status: string; categorias: { categoria: string; ultima_ingestao: string; total_registros: number }[] }>("/etl/status"),
+    executar: async () => {
+      const res = await fetch(`${BASE}/etl/executar`, { method: "POST" });
+      if (!res.ok) throw new Error(`HTTP ${res.status} em /etl/executar`);
+      return res.json();
+    },
+  },
+  database: {
+    create: async () => {
+      const res = await fetch(`${BASE}/database/create`, { method: "POST" });
+      if (!res.ok) throw new Error(`HTTP ${res.status} em /database/create`);
+      return res.json();
+    },
+    delete: async () => {
+      const res = await fetch(`${BASE}/database/delete`, { method: "DELETE" });
+      if (!res.ok) throw new Error(`HTTP ${res.status} em /database/delete`);
+      return res.json();
+    },
+  },
+  llm: {
+    status: () => get<{ model: string; provider: string }>("/llm/status"),
+    chat: async (message: string, history: any[] = []) => {
+      const res = await fetch(`${BASE}/llm/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, history }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.detail ?? `HTTP ${res.status} em /llm/chat`);
+      }
+      return res.json() as Promise<{ response: string; history: any[] }>;
+    },
   },
 };

@@ -181,27 +181,31 @@ def verificar_serie_existe(conn, id_serie):
 # EXECUÇÃO PRINCIPAL
 # ============================================================
 
-def rodar_etl():
-    print("=" * 50)
-    print("ETL — Coleta BCB/SGS iniciada")
-    print(f"Banco: {DB_PATH}")
+def rodar_etl_generator():
+    import json
+    
+    def emit(tipo, mensagem, **kwargs):
+        data = {"tipo": tipo, "mensagem": mensagem}
+        data.update(kwargs)
+        return json.dumps(data) + "\n"
+        
+    yield emit("log", "ETL — Coleta BCB/SGS iniciada")
+    yield emit("log", f"Banco: {DB_PATH}")
     
     conn = conectar_banco()
     series_para_coletar = obter_series_do_banco(conn)
+    total_series = len(series_para_coletar)
     
-    print(f"Séries para coletar: {len(series_para_coletar)}")
-    print("=" * 50)
+    yield emit("info", f"Séries para coletar: {total_series}", total=total_series)
 
     total_inseridos = 0
 
-    for codigo, sigla_uf in series_para_coletar:
+    for idx, (codigo, sigla_uf) in enumerate(series_para_coletar):
         uf_label = sigla_uf if sigla_uf else "Nacional"
-        print(f"\nColetando série {codigo} ({uf_label})...")
+        yield emit("progresso", f"Coletando série {codigo} ({uf_label})...", atual=idx + 1, total=total_series, codigo=codigo, uf=uf_label)
 
-        # Série já vem do catálogo, então não precisa verificar existência toda vez.
-        # Mas para garantir que não removemos funcionalidade útil:
         if not verificar_serie_existe(conn, codigo):
-            print(f"  AVISO: Série {codigo} não está em dim_serie. Pulando.")
+            yield emit("aviso", f"AVISO: Série {codigo} não está em dim_serie. Pulando.")
             continue
 
         # Busca dados na API do BCB
@@ -210,17 +214,22 @@ def rodar_etl():
         # Salva no banco
         qtd = salvar_no_banco(conn, codigo, sigla_uf, dados)
         total_inseridos += qtd
-        print(f"  {qtd} registros salvos no banco")
+        
+        yield emit("sucesso", f"{qtd} registros salvos no banco para a série {codigo}")
 
         # Pausa entre requisições para não sobrecarregar a API do BCB
         time.sleep(0.5)
 
     conn.close()
 
-    print("\n" + "=" * 50)
-    print(f"ETL concluído! Total inserido: {total_inseridos} registros")
-    print("=" * 50)
+    yield emit("concluido", f"ETL concluído! Total inserido: {total_inseridos} registros", total_inseridos=total_inseridos)
 
+
+def rodar_etl():
+    import json
+    for event in rodar_etl_generator():
+        data = json.loads(event.strip())
+        print(data.get("mensagem", ""))
 
 if __name__ == "__main__":
     rodar_etl()

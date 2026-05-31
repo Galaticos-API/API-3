@@ -1,16 +1,53 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation } from "react-router";
-import { BarChart3, Activity, Brain, MapPin, Menu, X } from "lucide-react";
+import { BarChart3, Activity, Brain, MapPin, Menu, X, Settings } from "lucide-react";
 import { cn } from "./ui/utils";
+import { api } from "../services/api";
 
 export function RootLayout() {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<string>("Carregando...");
+
+  useEffect(() => {
+    api.etl.status()
+      .then((res) => {
+        if (res.status === "ok" && res.categorias.length > 0) {
+          const latest = res.categorias[0].ultima_ingestao;
+          const date = new Date(latest);
+          if (!isNaN(date.getTime())) {
+            const formatted = new Intl.DateTimeFormat("pt-BR", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            }).format(date);
+            // Formata para ficar parecido com '16 mar. 2026' (ou semelhante)
+            setLastUpdated(formatted);
+          } else {
+            // Tenta lidar com YYYY-MM-DD HH:MM:SS se new Date(string) falhar (Safari etc, mas estamos no chrome/node)
+            const parts = latest.split(/[- :]/);
+            if (parts.length >= 3) {
+              const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+              setLastUpdated(new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", year: "numeric" }).format(d));
+            } else {
+              setLastUpdated("Desconhecido");
+            }
+          }
+        } else {
+          setLastUpdated("Sem dados");
+        }
+      })
+      .catch((err) => {
+        console.error("Erro ao buscar status do ETL:", err);
+        setLastUpdated("Erro ao carregar");
+      });
+  }, []);
 
   const navigation = [
     { name: "Dashboard", href: "/", icon: BarChart3 },
     { name: "Simulação Monte Carlo", href: "/simulacao", icon: Activity },
     { name: "Assistente IA", href: "/assistente", icon: Brain },
+    { name: "Administração", href: "/admin", icon: Settings },
   ];
 
   return (
@@ -36,7 +73,7 @@ export function RootLayout() {
             </div>
             <div className="text-right border border-white/20 rounded-lg px-3 py-1.5 hidden md:block">
               <p className="text-xs text-white/70">Última atualização</p>
-              <p className="text-sm font-semibold text-white">16 Mar 2026</p>
+              <p className="text-sm font-semibold text-white capitalize">{lastUpdated}</p>
             </div>
           </div>
         </div>

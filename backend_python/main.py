@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.routes import graficos, etl, database
+from api.routes import graficos, etl, database, llm
 
 app = FastAPI(
     title="API — Crédito Inclusivo",
@@ -22,6 +22,7 @@ app.add_middleware(
 app.include_router(graficos.router, prefix="/api/v1/graficos", tags=["Gráficos Prontos"])
 app.include_router(etl.router,      prefix="/api/v1/etl",      tags=["ETL"])
 app.include_router(database.router, prefix="/api/v1/database",  tags=["Database"])
+app.include_router(llm.router,      prefix="/api/v1/llm",       tags=["LLM"])
 
 @app.get("/", tags=["Root"])
 def read_root():

@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../co
 import { Button } from "../components/ui/button";
 import { Textarea } from "../components/ui/textarea";
 import { Badge } from "../components/ui/badge";
-import { Brain, Send, Sparkles, TrendingUp, MapPin, AlertCircle, CheckCircle } from "lucide-react";
-import { regionsData, kpiData } from "../data/mockData";
+import { Brain, Send, Database, LineChart, MapPin, Activity } from "lucide-react";
+import { api } from "../services/api";
 
 interface Message {
   id: string;
@@ -25,34 +25,36 @@ export function AIAssistant() {
       id: "1",
       role: "assistant",
       content:
-        "Olá! Sou o assistente de IA do Mapa de Oportunidades. Posso ajudá-lo a analisar dados de crédito inclusivo, identificar regiões promissoras, interpretar indicadores e gerar insights estratégicos. Como posso ajudar hoje?",
+        "Olá! Sou o assistente de IA especializado em dados de crédito inclusivo. Tenho acesso ao banco de dados e posso ajudá-lo a consultar estados, listar o catálogo de indicadores e analisar o histórico de séries temporais. Como posso ajudar hoje?",
       timestamp: new Date(),
     },
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [dbStatus, setDbStatus] = useState({ ufs: 0, loading: true });
+  const [llmStatus, setLlmStatus] = useState({ model: "Carregando...", provider: "...", loading: true });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const suggestedQuestions: SuggestedQuestion[] = [
     {
       id: "1",
-      question: "Quais são as 3 regiões com maior potencial de crédito?",
-      icon: TrendingUp,
+      question: "Quais são os indicadores disponíveis sobre inadimplência?",
+      icon: Database,
     },
     {
       id: "2",
-      question: "Qual região tem a menor taxa de inadimplência?",
-      icon: CheckCircle,
+      question: "Consulte o histórico de inadimplência PJ de São Paulo.",
+      icon: LineChart,
     },
     {
       id: "3",
-      question: "Como está a evolução do ticket médio?",
-      icon: Sparkles,
+      question: "Quais estados do Brasil estão disponíveis na base?",
+      icon: MapPin,
     },
     {
       id: "4",
-      question: "Quais fatores influenciam o score de oportunidade?",
-      icon: AlertCircle,
+      question: "Mostre os dados da série temporal de saldo de crédito PF.",
+      icon: Activity,
     },
   ];
 
@@ -64,122 +66,29 @@ export function AIAssistant() {
     scrollToBottom();
   }, [messages]);
 
-  const generateResponse = (userQuestion: string): string => {
-    const lowerQuestion = userQuestion.toLowerCase();
-
-    // Análise de regiões com maior potencial
-    if (lowerQuestion.includes("maior potencial") || lowerQuestion.includes("melhores regiões") || lowerQuestion.includes("top")) {
-      const top3 = regionsData.sort((a, b) => b.score - a.score).slice(0, 3);
-      return `Com base na análise dos dados atuais, as 3 regiões com maior potencial de crédito são:
-
-1. **${top3[0].name}** (Score: ${top3[0].score.toFixed(1)})
-   - Potencial de crédito: R$ ${(top3[0].potencialCredito / 1000000).toFixed(0)}M
-   - Taxa de bancarização: ${top3[0].bancarizacao}%
-   - Inadimplência: ${top3[0].inadimplencia}%
-
-2. **${top3[1].name}** (Score: ${top3[1].score.toFixed(1)})
-   - Potencial de crédito: R$ ${(top3[1].potencialCredito / 1000000).toFixed(0)}M
-   - Taxa de bancarização: ${top3[1].bancarizacao}%
-   - Inadimplência: ${top3[1].inadimplencia}%
-
-3. **${top3[2].name}** (Score: ${top3[2].score.toFixed(1)})
-   - Potencial de crédito: R$ ${(top3[2].potencialCredito / 1000000).toFixed(0)}M
-   - Taxa de bancarização: ${top3[2].bancarizacao}%
-   - Inadimplência: ${top3[2].inadimplencia}%
-
-Essas regiões apresentam excelente combinação de alto potencial de mercado, boa bancarização e taxas de inadimplência controladas, tornando-as ideais para expansão sustentável.`;
+  useEffect(() => {
+    async function fetchStatus() {
+      try {
+        const ufs = await api.ufs.listar();
+        setDbStatus({ ufs: ufs.length, loading: false });
+      } catch (err) {
+        setDbStatus({ ufs: 0, loading: false });
+      }
+      
+      try {
+        const llmInfo = await api.llm.status();
+        setLlmStatus({ model: llmInfo.model, provider: llmInfo.provider, loading: false });
+      } catch (err) {
+        setLlmStatus({ model: "Desconhecido", provider: "Desconhecido", loading: false });
+      }
     }
+    fetchStatus();
+  }, []);
 
-    // Análise de inadimplência
-    if (lowerQuestion.includes("inadimpl") || lowerQuestion.includes("menor risco")) {
-      const lowest = regionsData.reduce((prev, curr) => (curr.inadimplencia < prev.inadimplencia ? curr : prev));
-      return `A região com a **menor taxa de inadimplência** é:
-
-**${lowest.name}** - ${lowest.inadimplencia}%
-
-Esta região se destaca por:
-- Score de oportunidade de ${lowest.score.toFixed(1)} pontos
-- Taxa de bancarização de ${lowest.bancarizacao}%
-- População de ${(lowest.population / 1000000).toFixed(1)}M habitantes
-- Renda média de R$ ${lowest.rendaMedia.toFixed(0)}
-
-A baixa inadimplência indica um mercado maduro e com bom perfil de crédito, sendo uma excelente opção para operações de menor risco.`;
-    }
-
-    // Evolução do ticket médio
-    if (lowerQuestion.includes("ticket") || lowerQuestion.includes("evolução") || lowerQuestion.includes("crescimento")) {
-      return `A **evolução do ticket médio** apresenta tendência positiva consistente:
-
-📊 **Dados Atuais:**
-- Ticket médio nacional: R$ ${kpiData.ticketMedioNacional.toFixed(0)}
-- Crescimento mensal: +${kpiData.crescimentoMensal}%
-- Crescimento trimestral: +4.2%
-
-📈 **Análise de Tendência:**
-Nos últimos 12 meses, observamos crescimento gradual do ticket médio, partindo de R$ 2.850 em Jan/25 para R$ 3.580 em Fev/26. Isso indica:
-
-1. Maior capacidade de crédito da população
-2. Melhora nas condições econômicas regionais
-3. Amadurecimento do mercado de crédito inclusivo
-4. Confiança crescente nas operações
-
-💡 **Recomendação:** Este crescimento sustentado sugere oportunidade para produtos de crédito de maior valor agregado, especialmente nas regiões com score acima de 85 pontos.`;
-    }
-
-    // Fatores de influência
-    if (lowerQuestion.includes("fator") || lowerQuestion.includes("influenc") || lowerQuestion.includes("score") || lowerQuestion.includes("como")) {
-      return `O **score de oportunidade** é calculado com base em diversos fatores ponderados:
-
-🎯 **Principais Fatores:**
-
-1. **Taxa de Bancarização (peso: 30%)**
-   - Indica a penetração de serviços financeiros
-   - Maior bancarização = maior familiaridade com crédito
-
-2. **Taxa de Inadimplência (peso: 25%)**
-   - Avalia o risco de crédito da região
-   - Menor inadimplência = melhor score
-
-3. **Renda Média (peso: 20%)**
-   - Capacidade de pagamento da população
-   - Fundamental para sustentabilidade das operações
-
-4. **Densidade Populacional (peso: 15%)**
-   - Escala de mercado potencial
-   - Maior população = maior volume de operações
-
-5. **Potencial de Crédito (peso: 10%)**
-   - Volume financeiro disponível
-   - Baseado em demanda reprimida e capacidade econômica
-
-📊 **Exemplo Prático:**
-Uma região com 70% de bancarização, 3% de inadimplência, renda média de R$ 3.000 e 2M de habitantes tende a ter score acima de 85 pontos, indicando excelente oportunidade de expansão.`;
-    }
-
-    // Resposta padrão
-    return `Entendo sua pergunta sobre "${userQuestion}". 
-
-Com base nos dados do sistema, posso fornecer as seguintes informações:
-
-📊 **Visão Geral do Sistema:**
-- Total de regiões mapeadas: ${kpiData.regioesMapeadas}
-- Potencial total de crédito: R$ ${(kpiData.totalPotencial / 1000000000).toFixed(1)}B
-- Taxa de crescimento mensal: ${kpiData.crescimentoMensal}%
-
-Para análises mais específicas, você pode perguntar sobre:
-- Rankings regionais e scores de oportunidade
-- Indicadores de risco e inadimplência
-- Evolução temporal de métricas
-- Comparações entre regiões
-
-Como posso ajudar com mais detalhes?`;
-  };
-
-  const handleSendMessage = (text?: string) => {
+  const handleSendMessage = async (text?: string) => {
     const messageText = text || input.trim();
     if (!messageText) return;
 
-    // Adiciona mensagem do usuário
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
@@ -191,19 +100,33 @@ Como posso ajudar com mais detalhes?`;
     setInput("");
     setIsTyping(true);
 
-    // Simula tempo de processamento da IA
-    setTimeout(() => {
-      const response = generateResponse(messageText);
+    try {
+      // Formata o histórico pro formato que a API espera (excluindo a mensagem atual)
+      const historyToSend = messages
+        .filter(m => m.id !== "1") // Ignora a mensagem inicial de boas vindas
+        .map(m => ({ role: m.role, content: m.content }));
+
+      const data = await api.llm.chat(messageText, historyToSend);
+      
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: response,
+        content: data.response || "Desculpe, não consegui gerar uma resposta.",
         timestamp: new Date(),
       };
-
       setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error: any) {
+      console.error("Erro ao chamar LLM:", error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: "Desculpe, ocorreu um erro de conexão com o assistente inteligente. Tente novamente mais tarde.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleSuggestedQuestion = (question: string) => {
@@ -220,12 +143,26 @@ Como posso ajudar com mais detalhes?`;
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold text-gray-900">Assistente de IA</h2>
-          <p className="text-gray-500 mt-1">Análise inteligente de dados e geração de insights</p>
+          <p className="text-gray-500 mt-1">
+            {llmStatus.loading ? "Carregando informações do modelo..." : `Integração ${llmStatus.model} com o banco de dados via chamadas de ferramentas`}
+          </p>
         </div>
-        <div className="flex items-center gap-2 bg-green-50 px-4 py-2 rounded-lg border border-green-200">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-sm font-medium text-green-700">IA Online</span>
-        </div>
+        {llmStatus.loading ? (
+          <div className="flex items-center gap-2 bg-yellow-50 px-4 py-2 rounded-lg border border-yellow-200 shadow-sm">
+            <div className="w-2.5 h-2.5 bg-yellow-500 rounded-full animate-pulse"></div>
+            <span className="text-sm font-semibold text-yellow-700">Conectando...</span>
+          </div>
+        ) : llmStatus.model !== "Desconhecido" ? (
+          <div className="flex items-center gap-2 bg-green-50 px-4 py-2 rounded-lg border border-green-200 shadow-sm">
+            <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+            <span className="text-sm font-semibold text-green-700">Modelo Online</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 bg-red-50 px-4 py-2 rounded-lg border border-red-200 shadow-sm">
+            <div className="w-2.5 h-2.5 bg-red-500 rounded-full"></div>
+            <span className="text-sm font-semibold text-red-700">Offline</span>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -233,12 +170,14 @@ Como posso ajudar com mais detalhes?`;
         <Card className="lg:col-span-3 flex flex-col min-h-[500px] lg:h-[calc(100vh-280px)]">
           <CardHeader className="border-b">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
                 <Brain className="w-6 h-6 text-white" />
               </div>
               <div>
-                <CardTitle>Assistente Inteligente</CardTitle>
-                <CardDescription>Baseado em GPT-4 com dados do sistema</CardDescription>
+                <CardTitle>Agente de Dados</CardTitle>
+                <CardDescription>
+                  {llmStatus.loading ? "..." : `${llmStatus.model} (${llmStatus.provider}) com RAG / Tools`}
+                </CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -333,62 +272,66 @@ Como posso ajudar com mais detalhes?`;
           </Card>
 
           {/* Capacidades */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Capacidades da IA</CardTitle>
+          <Card className="border-t-4 border-t-purple-500 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Capacidades Reais da IA</CardTitle>
+              <CardDescription>As ferramentas que o modelo utiliza</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-start gap-2">
-                <Sparkles className="w-4 h-4 text-purple-600 mt-0.5" />
+            <CardContent className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="bg-purple-100 p-2 rounded-md mt-0.5">
+                  <MapPin className="w-4 h-4 text-purple-700" />
+                </div>
                 <div>
-                  <p className="text-sm font-medium">Análise Preditiva</p>
-                  <p className="text-xs text-gray-600">Identifica tendências e padrões</p>
+                  <p className="text-sm font-medium text-gray-800">Consultar UFs</p>
+                  <p className="text-xs text-gray-500">Mapeia os estados do Brasil e regiões</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 text-green-600 mt-0.5" />
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-100 p-2 rounded-md mt-0.5">
+                  <Database className="w-4 h-4 text-blue-700" />
+                </div>
                 <div>
-                  <p className="text-sm font-medium">Insights Regionais</p>
-                  <p className="text-xs text-gray-600">Compara e ranqueia territórios</p>
+                  <p className="text-sm font-medium text-gray-800">Catálogo de Séries</p>
+                  <p className="text-xs text-gray-500">Lista indicadores e seus identificadores únicos</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-2">
-                <TrendingUp className="w-4 h-4 text-blue-600 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium">Recomendações</p>
-                  <p className="text-xs text-gray-600">Sugere estratégias de expansão</p>
+              <div className="flex items-start gap-3">
+                <div className="bg-green-100 p-2 rounded-md mt-0.5">
+                  <LineChart className="w-4 h-4 text-green-700" />
                 </div>
-              </div>
-
-              <div className="flex items-start gap-2">
-                <Brain className="w-4 h-4 text-indigo-600 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium">Linguagem Natural</p>
-                  <p className="text-xs text-gray-600">Explica conceitos complexos</p>
+                  <p className="text-sm font-medium text-gray-800">Histórico Temporal</p>
+                  <p className="text-xs text-gray-500">Analisa a evolução dos dados filtrados por data</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Status */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Dados Conectados</CardTitle>
+          <Card className="border-t-4 border-t-indigo-500 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Integração de Dados</CardTitle>
+              <CardDescription>Status das conexões</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-3">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Regiões</span>
-                <Badge variant="secondary">{kpiData.regioesMapeadas}</Badge>
+                <span className="text-gray-600 font-medium">Estados Mapeados</span>
+                <Badge variant="secondary" className="bg-indigo-50 text-indigo-700">
+                  {dbStatus.loading ? "..." : dbStatus.ufs} UFs
+                </Badge>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Séries Temporais</span>
-                <Badge variant="secondary">15 meses</Badge>
+                <span className="text-gray-600 font-medium">Banco de Dados</span>
+                <Badge variant="secondary" className="bg-green-50 text-green-700">SQLite</Badge>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Indicadores</span>
-                <Badge variant="secondary">8 métricas</Badge>
+                <span className="text-gray-600 font-medium">Provedor LLM</span>
+                <Badge variant="secondary" className="bg-purple-50 text-purple-700">
+                  {llmStatus.loading ? "..." : llmStatus.provider}
+                </Badge>
               </div>
             </CardContent>
           </Card>
