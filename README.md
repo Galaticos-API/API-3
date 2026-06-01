@@ -10,6 +10,7 @@
   <a href="#-o-projeto">O Projeto</a> &nbsp;&bull;&nbsp;
   <a href="#-desafio">Desafio</a> &nbsp;&bull;&nbsp;
   <a href="#-solução">Solução</a> &nbsp;&bull;&nbsp;
+  <a href="#-demonstração">Demonstração</a> &nbsp;&bull;&nbsp;
   <a href="#-backlogs">Backlogs</a> &nbsp;&bull;&nbsp;
   <a href="#-dor-e-dod">DoR e DoD</a> &nbsp;&bull;&nbsp;
   <a href="#-tecnologias">Tecnologias</a> &nbsp;&bull;&nbsp;
@@ -43,6 +44,14 @@ O produto final da análise será a construção de um **Mapa de Oportunidade pa
 ## 💡 Solução
 
 O projeto visa desenvolver uma plataforma web de inteligência de crédito. Entregaremos um dashboard interativo com um ranking regional, acompanhado de um mapa do Brasil e gráficos dinâmicos. O sistema contará com filtros de tempo e região, simulações de cenários de risco (Monte Carlo) e um assistente de Inteligência Artificial para gerar resumos em linguagem natural. Além do software funcional e seguro, entregaremos a Documentação da API, a Modelagem do Banco de Dados e os Manuais de Instalação e do Usuário exigidos pela Fatec.
+
+## 🎥 Demonstração
+
+Abaixo, você pode assistir ao vídeo de demonstração do funcionamento da nossa aplicação:
+
+<div align="center">
+  <video src="DOCS/api3.mp4" width="100%" controls></video>
+</div>
 
 ## 📋 Backlogs
 

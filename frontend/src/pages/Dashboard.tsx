@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../co
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Badge } from "../components/ui/badge";
 import { BrazilMap } from "../components/BrazilMap";
-import { X, RefreshCw, AlertTriangle, Download, Table, Printer, FileText } from "lucide-react";
+import { X, RefreshCw, AlertTriangle, Download, Table, FileText } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -147,19 +147,19 @@ export function Dashboard() {
       setTimeout(async () => {
         try {
           const doc = new jsPDF("p", "mm", "a4");
-          
+
           doc.setFontSize(22);
           doc.setTextColor(40, 40, 40);
           doc.text("Mapa de Oportunidades de Crédito - DM", 14, 22);
-          
+
           doc.setFontSize(11);
           doc.setTextColor(100, 100, 100);
           doc.text(`Gerado em: ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`, 14, 30);
-          
+
           const filtrosTexto = [];
           if (selectedMacroRegion) filtrosTexto.push(`Macrorregião: ${MACRO_REGIONS[selectedMacroRegion].label}`);
           if (selectedState) filtrosTexto.push(`Estado: ${selectedState}`);
-          
+
           if (filtrosTexto.length > 0) {
             doc.text(`Filtros Ativos: ${filtrosTexto.join(" | ")}`, 14, 38);
           } else {
@@ -167,7 +167,7 @@ export function Dashboard() {
           }
 
           const ranking = grf08.data?.ranking ?? [];
-          const dadosFiltrados = selectedMacroRegion 
+          const dadosFiltrados = selectedMacroRegion
             ? ranking.filter(r => MACRO_REGIONS[selectedMacroRegion].states.includes(r.sigla_uf))
             : ranking;
 
@@ -190,11 +190,11 @@ export function Dashboard() {
             styles: { fontSize: 9 },
             alternateRowStyles: { fillColor: [245, 247, 250] }
           });
-          
+
           const chartsContainer = document.getElementById("dashboard-charts");
           if (chartsContainer) {
             const imgData = await toPng(chartsContainer, { backgroundColor: "#ffffff" });
-            
+
             // To properly calculate aspect ratio, we can create an Image object
             const img = new Image();
             img.src = imgData;
@@ -205,13 +205,13 @@ export function Dashboard() {
             const marginX = 14;
             const imgWidth = pdfWidth - (marginX * 2);
             const imgHeight = (img.height * imgWidth) / img.width;
-            
+
             doc.addPage();
-            
+
             let position = 14;
             doc.addImage(imgData, 'PNG', marginX, position, imgWidth, imgHeight);
             let heightLeft = imgHeight - (pageHeight - position);
-            
+
             while (heightLeft > 0) {
               position -= pageHeight;
               doc.addPage();
@@ -219,7 +219,7 @@ export function Dashboard() {
               heightLeft -= pageHeight;
             }
           }
-          
+
           doc.save(`mapa_oportunidades_dm_${new Date().toISOString().slice(0, 10)}.pdf`);
         } catch (err: any) {
           console.error("Erro ao gerar PDF:", err);
@@ -361,156 +361,156 @@ export function Dashboard() {
       {/* ── Mapa + Ranking IOI ───────────────────────────────────────────────── */}
       <div id="dashboard-charts" className="space-y-6 pb-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Mapa do Brasil</CardTitle>
-            <CardDescription>
-              {selectedMacroRegion
-                ? `Filtrando: ${MACRO_REGIONS[selectedMacroRegion].label} — clique em um estado`
-                : "Colorido pelo Score IOI — clique em um estado"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <BrazilMap
-              data={mapData}
-              selectedState={selectedState}
-              onStateClick={handleStateClick}
-            />
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Mapa do Brasil</CardTitle>
+              <CardDescription>
+                {selectedMacroRegion
+                  ? `Filtrando: ${MACRO_REGIONS[selectedMacroRegion].label} — clique em um estado`
+                  : "Colorido pelo Score IOI — clique em um estado"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <BrazilMap
+                data={mapData}
+                selectedState={selectedState}
+                onStateClick={handleStateClick}
+              />
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Ranking IOI</CardTitle>
-            <CardDescription>Score de oportunidade por estado (0–10)</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col md:flex-row gap-4 md:gap-0" style={{ minHeight: 340 }}>
-              {/* Lista */}
-              <div className="w-full md:w-1/2 space-y-1 overflow-y-auto md:pr-2" style={{ maxHeight: 340 }}>
-                {grf08.loading ? (
-                  <div className="flex items-center justify-center h-40 text-sm text-muted-foreground gap-2">
-                    <RefreshCw className="w-4 h-4 animate-spin" /> Carregando...
-                  </div>
-                ) : rankingFiltrado.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center gap-2 text-center pt-10">
-                    <span className="text-2xl">🔍</span>
-                    <p className="text-[11px] text-muted-foreground">Sem dados de ranking para os filtros selecionados.</p>
-                  </div>
-                ) : (
-                  rankingFiltrado.map((r, idx) => {
-                    const macro = getMacroRegion(r.sigla_uf);
-                    const macroColor = macro ? MACRO_REGIONS[macro].color : "#64748b";
-                    return (
-                      <div key={r.sigla_uf}
-                        onClick={() => handleStateClick(r.sigla_uf)}
-                        className={`flex items-center gap-2 p-2.5 rounded-xl cursor-pointer transition-colors border-b border-border last:border-0 ${selectedState === r.sigla_uf ? "bg-vocedm-blue/10" : "hover:bg-slate-50"}`}>
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] text-white flex-shrink-0 ${idx === 0 ? "bg-[#f97316]" : idx === 1 ? "bg-slate-500" : idx === 2 ? "bg-amber-700" : "bg-vocedm-blue"}`}>
-                          {idx + 1}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1">
-                            <p className="font-semibold text-foreground text-[11px] truncate">{r.nome}</p>
-                            <Badge className="text-[9px] px-1 py-0 bg-[#F1EFFF] text-vocedm-blue border border-vocedm-blue/20 flex-shrink-0">{r.sigla_uf}</Badge>
-                          </div>
-                          <div className="flex items-center gap-1 mt-0.5">
-                            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: macroColor }} />
-                            <span className="text-[10px] text-muted-foreground">Score: {r.score_oportunidade.toFixed(2)}</span>
-                          </div>
-                        </div>
-                        <div className="font-bold text-xs text-vocedm-blue">{r.score_oportunidade.toFixed(1)}</div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-              <div className="hidden md:block w-px bg-border mx-3" />
-              {/* Detalhe */}
-              <div className="w-full md:w-1/2 md:pl-1">
-                {selectedRankingItem ? (
-                  <>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-1.5">
-                        <Badge className="bg-[#F1EFFF] text-vocedm-blue border border-vocedm-blue/20 text-xs">{selectedRankingItem.sigla_uf}</Badge>
-                        <span className="text-foreground text-sm font-semibold truncate">{selectedRankingItem.nome}</span>
-                      </div>
-                      <button onClick={() => setSelectedState(undefined)} className="text-muted-foreground hover:text-foreground text-xs ml-1">✕</button>
+          <Card>
+            <CardHeader>
+              <CardTitle>Ranking IOI</CardTitle>
+              <CardDescription>Score de oportunidade por estado (0–10)</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col md:flex-row gap-4 md:gap-0" style={{ minHeight: 340 }}>
+                {/* Lista */}
+                <div className="w-full md:w-1/2 space-y-1 overflow-y-auto md:pr-2" style={{ maxHeight: 340 }}>
+                  {grf08.loading ? (
+                    <div className="flex items-center justify-center h-40 text-sm text-muted-foreground gap-2">
+                      <RefreshCw className="w-4 h-4 animate-spin" /> Carregando...
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                      {[
-                        { label: "Score IOI", value: `${selectedRankingItem.score_oportunidade.toFixed(2)} / 10`, cls: "text-vocedm-blue font-bold" },
-                        { label: "Risco", value: selectedRankingItem.componente_risco != null ? `${selectedRankingItem.componente_risco.toFixed(2)}` : "—", cls: "text-muted-foreground" },
-                        { label: "Tendência", value: (selectedRankingItem as any).componente_tendencia != null ? `${(selectedRankingItem as any).componente_tendencia.toFixed(2)}` : "—", cls: "text-muted-foreground" },
-                        { label: "Macrorregião", value: MACRO_REGIONS[getMacroRegion(selectedRankingItem.sigla_uf) ?? ""]?.label ?? "—", cls: "text-muted-foreground" },
-                      ].map(item => (
-                        <div key={item.label} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
-                          <span className="text-muted-foreground text-xs">{item.label}</span>
-                          <span className={`text-sm ${item.cls}`}>{item.value}</span>
-                        </div>
-                      ))}
+                  ) : rankingFiltrado.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center gap-2 text-center pt-10">
+                      <span className="text-2xl">🔍</span>
+                      <p className="text-[11px] text-muted-foreground">Sem dados de ranking para os filtros selecionados.</p>
                     </div>
-                  </>
-                ) : (
-                  <div className="h-full flex flex-col items-center justify-center gap-2 text-center">
-                    <span className="text-3xl">👆</span>
-                    <p className="text-[10px] text-muted-foreground leading-relaxed px-2">Clique em uma região para ver os detalhes</p>
-                  </div>
-                )}
+                  ) : (
+                    rankingFiltrado.map((r, idx) => {
+                      const macro = getMacroRegion(r.sigla_uf);
+                      const macroColor = macro ? MACRO_REGIONS[macro].color : "#64748b";
+                      return (
+                        <div key={r.sigla_uf}
+                          onClick={() => handleStateClick(r.sigla_uf)}
+                          className={`flex items-center gap-2 p-2.5 rounded-xl cursor-pointer transition-colors border-b border-border last:border-0 ${selectedState === r.sigla_uf ? "bg-vocedm-blue/10" : "hover:bg-slate-50"}`}>
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] text-white flex-shrink-0 ${idx === 0 ? "bg-[#f97316]" : idx === 1 ? "bg-slate-500" : idx === 2 ? "bg-amber-700" : "bg-vocedm-blue"}`}>
+                            {idx + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1">
+                              <p className="font-semibold text-foreground text-[11px] truncate">{r.nome}</p>
+                              <Badge className="text-[9px] px-1 py-0 bg-[#F1EFFF] text-vocedm-blue border border-vocedm-blue/20 flex-shrink-0">{r.sigla_uf}</Badge>
+                            </div>
+                            <div className="flex items-center gap-1 mt-0.5">
+                              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: macroColor }} />
+                              <span className="text-[10px] text-muted-foreground">Score: {r.score_oportunidade.toFixed(2)}</span>
+                            </div>
+                          </div>
+                          <div className="font-bold text-xs text-vocedm-blue">{r.score_oportunidade.toFixed(1)}</div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+                <div className="hidden md:block w-px bg-border mx-3" />
+                {/* Detalhe */}
+                <div className="w-full md:w-1/2 md:pl-1">
+                  {selectedRankingItem ? (
+                    <>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-1.5">
+                          <Badge className="bg-[#F1EFFF] text-vocedm-blue border border-vocedm-blue/20 text-xs">{selectedRankingItem.sigla_uf}</Badge>
+                          <span className="text-foreground text-sm font-semibold truncate">{selectedRankingItem.nome}</span>
+                        </div>
+                        <button onClick={() => setSelectedState(undefined)} className="text-muted-foreground hover:text-foreground text-xs ml-1">✕</button>
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        {[
+                          { label: "Score IOI", value: `${selectedRankingItem.score_oportunidade.toFixed(2)} / 10`, cls: "text-vocedm-blue font-bold" },
+                          { label: "Risco", value: selectedRankingItem.componente_risco != null ? `${selectedRankingItem.componente_risco.toFixed(2)}` : "—", cls: "text-muted-foreground" },
+                          { label: "Tendência", value: (selectedRankingItem as any).componente_tendencia != null ? `${(selectedRankingItem as any).componente_tendencia.toFixed(2)}` : "—", cls: "text-muted-foreground" },
+                          { label: "Macrorregião", value: MACRO_REGIONS[getMacroRegion(selectedRankingItem.sigla_uf) ?? ""]?.label ?? "—", cls: "text-muted-foreground" },
+                        ].map(item => (
+                          <div key={item.label} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
+                            <span className="text-muted-foreground text-xs">{item.label}</span>
+                            <span className={`text-sm ${item.cls}`}>{item.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center gap-2 text-center">
+                      <span className="text-3xl">👆</span>
+                      <p className="text-[10px] text-muted-foreground leading-relaxed px-2">Clique em uma região para ver os detalhes</p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
 
-      <hr />
+        <hr />
 
-      {/* ── Gráficos: linha 1 ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard title="Saldo de Crédito SFN" description="PF, PJ e Total — Séries BCB 20540/41/42 (R$ mi)"
-          loading={grf01.loading} error={grf01.error} refetch={grf01.refetch}>
-          {grf01.data && <ChartCreditoSfn data={grf01.data} />}
+        {/* ── Gráficos: linha 1 ─────────────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ChartCard title="Saldo de Crédito SFN" description="PF, PJ e Total — Séries BCB 20540/41/42 (R$ mi)"
+            loading={grf01.loading} error={grf01.error} refetch={grf01.refetch}>
+            {grf01.data && <ChartCreditoSfn data={grf01.data} />}
+          </ChartCard>
+
+          <ChartCard title="Contexto Macroeconômico" description="Selic, IPCA e Inadimplência PF — eixo duplo"
+            loading={grf02.loading} error={grf02.error} refetch={grf02.refetch}>
+            {grf02.data && <ChartMacroContexto data={grf02.data} />}
+          </ChartCard>
+        </div>
+
+        {/* ── Gráficos: linha 2 ─────────────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ChartCard title="Inadimplência Regional" description="Boxplot histórico + barras do valor atual por macrorregião"
+            loading={grf03.loading} error={grf03.error} refetch={grf03.refetch}>
+            {grf03.data && <ChartInadimplenciaRegional data={grf03.data} />}
+          </ChartCard>
+
+          <ChartCard title="Dispersão PF vs PJ" description="Inadimplência atual por estado — cor indica macrorregião"
+            loading={grf06.loading} error={grf06.error} refetch={grf06.refetch}>
+            {grf06.data && <ChartScatterPfPj data={grf06.data} />}
+          </ChartCard>
+        </div>
+
+
+
+        {/* ── Gráficos: linha 3 ─────────────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* ── GRF-05 Heatmap  ──────────────────────────────────── */}
+          <ChartCard title="Heatmap de Inadimplência Estadual" description="Matriz UF × Mês — últimos 24 meses (verde=baixa, vermelho=alta)"
+            loading={grf05.loading} error={grf05.error} refetch={grf05.refetch} >
+            {grf05.data && <ChartHeatmapEstados data={grf05.data} />}
+          </ChartCard>
+
+          <ChartCard title="Score IOI — Ranking de Oportunidade" description="Índice de Oportunidade Inclusiva por estado (0–10)"
+            loading={grf08.loading} error={grf08.error} refetch={grf08.refetch}>
+            {grf08.data && <ChartScoreOportunidade data={grf08.data} />}
+          </ChartCard>
+        </div>
+
+        {/* ── GRF-09 Monte Carlo (largura total) ──────────────────────────────── */}
+        <ChartCard title="Simulação Monte Carlo" description="Distribuição de perdas projetadas — VaR 95% e 99%"
+          loading={grf09.loading} error={grf09.error} refetch={grf09.refetch} colSpan={2}>
+          {grf09.data && <ChartMonteCarlo data={grf09.data} />}
         </ChartCard>
-
-        <ChartCard title="Contexto Macroeconômico" description="Selic, IPCA e Inadimplência PF — eixo duplo"
-          loading={grf02.loading} error={grf02.error} refetch={grf02.refetch}>
-          {grf02.data && <ChartMacroContexto data={grf02.data} />}
-        </ChartCard>
-      </div>
-
-      {/* ── Gráficos: linha 2 ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard title="Inadimplência Regional" description="Boxplot histórico + barras do valor atual por macrorregião"
-          loading={grf03.loading} error={grf03.error} refetch={grf03.refetch}>
-          {grf03.data && <ChartInadimplenciaRegional data={grf03.data} />}
-        </ChartCard>
-
-        <ChartCard title="Dispersão PF vs PJ" description="Inadimplência atual por estado — cor indica macrorregião"
-          loading={grf06.loading} error={grf06.error} refetch={grf06.refetch}>
-          {grf06.data && <ChartScatterPfPj data={grf06.data} />}
-        </ChartCard>
-      </div>
-
-
-
-      {/* ── Gráficos: linha 3 ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* ── GRF-05 Heatmap  ──────────────────────────────────── */}
-        <ChartCard title="Heatmap de Inadimplência Estadual" description="Matriz UF × Mês — últimos 24 meses (verde=baixa, vermelho=alta)"
-          loading={grf05.loading} error={grf05.error} refetch={grf05.refetch} >
-          {grf05.data && <ChartHeatmapEstados data={grf05.data} />}
-        </ChartCard>
-
-        <ChartCard title="Score IOI — Ranking de Oportunidade" description="Índice de Oportunidade Inclusiva por estado (0–10)"
-          loading={grf08.loading} error={grf08.error} refetch={grf08.refetch}>
-          {grf08.data && <ChartScoreOportunidade data={grf08.data} />}
-        </ChartCard>
-      </div>
-
-      {/* ── GRF-09 Monte Carlo (largura total) ──────────────────────────────── */}
-      <ChartCard title="Simulação Monte Carlo" description="Distribuição de perdas projetadas — VaR 95% e 99%"
-        loading={grf09.loading} error={grf09.error} refetch={grf09.refetch} colSpan={2}>
-        {grf09.data && <ChartMonteCarlo data={grf09.data} />}
-      </ChartCard>
 
       </div>
     </div>
