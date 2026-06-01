@@ -1,59 +1,85 @@
 # Guia de Configuração e Execução via Docker 🐳
 
-Este guia descreve como iniciar todo o ambiente da aplicação (Frontend e Backend) usando apenas um único comando, de forma profissional e escalável utilizando **Docker** e **Docker Compose**.
+Este guia descreve como iniciar todo o ambiente da aplicação (Frontend e Backend) usando apenas um único comando, de forma escalável com **Docker** e **Docker Compose**.
 
 ## Pré-requisitos
-Antes de prosseguir, certifique-se de ter os seguintes softwares instalados em seu sistema (Windows, Linux ou Mac):
-1. **Docker**: Ferramenta de containers.
-2. **Docker Compose**: Plugin embutido no Docker para orquestrar múltiplos containers. (Já incluso no Docker Desktop).
+
+Certifique-se de ter instalados:
+
+1. **Docker**
+2. **Docker Compose** (plugin do Docker)
+3. **Git**
 
 ---
 
 ## Como Rodar a Aplicação
 
-Para iniciar o projeto inteiro através do Docker, apenas siga este passo:
+1. Abra o terminal na **pasta raiz do projeto** (onde está o arquivo `docker-compose.yml`).
+2. Execute:
 
-1. Abra o Terminal e certifique-se de estar na **pasta raiz do projeto** (onde fica o arquivo `docker-compose.yml`).
-2. Execute o seguinte comando:
-   ```bash
-   docker-compose up -d --build
-   ```
+```bash
+docker compose up -d --build
+```
 
-> **Nota:** 
-> - A flag `-d` significa *Detached mode*. Isso faz os containers rodarem em segundo plano sem travar seu terminal atual.
-> - A flag `--build` garante que suas imagens sejam construídas e fiquem com as modificações mais recentes contidas nas pastas.
+> Se o seu ambiente ainda usa o comando legado, `docker-compose up -d --build` também funciona, mas a recomendação atual é `docker compose`.
+
+### O que esse comando faz
+
+- `-d`: executa os containers em segundo plano.
+- `--build`: força a reconstrução das imagens a partir do Dockerfile.
 
 ---
 
 ## Como Acessar a Aplicação
 
-Quando o comando for finalizado com sucesso e os containers estiverem em execução, você poderá acessar:
-
-- 💻 **Frontend (Aplicação Web)**: [http://localhost](http://localhost) (Se o Nginx carregar e tudo ocorrer bem, será hospedado na clássica porta 80).
-- ⚙️ **Backend (API)**: [http://localhost:8000/docs](http://localhost:8000/docs) (Para ver a interface Swagger/documentação interativa FastAPI).
-
-## Hot Reload Mágico 🔥
-
-Se você for desenvolver, essa configuração provê suporte para reloads em tempo de código!
-No `docker-compose.yml`, o container do backend lê seus arquivos diretamente da pasta `backend_python` através do conceito de *volumes* do Docker.
-Isso quer dizer que, caso você faça qualquer alteração no código Python (no FastAPI), a alteração será reiniciada subitamente no servidor sem você precisar desligar os recursos. Além disso, o seu banco de dados em `database/` também persiste dados com o sistema local (uma inserção feita pelo servidor via container pode ser lida por si ou vice-versa)!
+| Serviço | URL |
+|---|---|
+| Frontend | http://localhost |
+| Backend — Swagger UI | http://localhost:8000/docs |
+| Backend — ReDoc | http://localhost:8000/redoc |
 
 ---
 
-## Como Encerrar e Reciclar
-
-Seu trabalho acabou e você deseja derrubar os servidores locais? Muito simples:
-Ainda na raiz do projeto (mesma pasta do *Compose*), basta rodar:
+## Logs e Debug
 
 ```bash
-docker-compose down
+docker compose logs -f backend
+docker compose logs -f frontend
 ```
 
-### Apagando e Subindo Tudo do Zero
-Se você sentiu que as dependências ou instalações desestabilizaram e quer deletar qualquer recarga pré-armazenada em sua máquina local para baixar novamente do zero:
+Usar o `-f` mantém a saída em tempo real.
+
+---
+
+## Funcionamento de Hot Reload
+
+O `docker-compose.yml` monta volumes do host para o container.
+Isso permite editar arquivos em `backend_python` ou `frontend` e ver as alterações refletidas sem reconstruir a imagem a cada mudança.
+
+---
+
+## Como Parar a Aplicação
 
 ```bash
-docker-compose down -v --rmi all
-# Após tudo limpo, basta relançar a orquestração de novo.
-docker-compose up -d --build
+docker compose down
 ```
+
+---
+
+## Reiniciar do Zero
+
+```bash
+docker compose down -v --rmi all
+docker compose up -d --build
+```
+
+Esse comando remove containers, volumes e imagens antes de recriar tudo.
+
+---
+
+## Observações
+
+- O frontend roda na porta `80`.
+- O backend roda na porta `8000`.
+- O arquivo `.env` na raiz é usado pelo backend para carregar as chaves Groq.
+- Caso a porta `80` ou `8000` esteja em uso, ajuste as portas no `docker-compose.yml`.

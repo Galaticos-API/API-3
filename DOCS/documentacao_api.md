@@ -40,6 +40,8 @@ Retorna detalhes de um estado específico da federação.
 
 ---
 
+### `POST /logout`
+
 Invalida o token atual na tabela `sessao`.
 
 **Header obrigatório:**
@@ -82,7 +84,7 @@ Retorna detalhes de um estado específico da federação.
 
 ---
 
-## Módulo 2 — Gráficos do Dashboard
+## Módulo 3 — Gráficos do Dashboard
 
 ### `GET /graficos/credito-sfn`
 
@@ -115,7 +117,7 @@ Matriz de inadimplência por UF nos últimos 24 meses.
 
 ---
 
-## Módulo 3 — Ranking de Oportunidades
+## Módulo 4 — Ranking de Oportunidades
 
 ### `GET /api/v1/graficos/score-oportunidade`
 
@@ -129,7 +131,7 @@ IOI = (s_inadimplência × 0,60 + s_tendência × 0,40) × 10
 
 ---
 
-## Módulo 4 — Simulação Monte Carlo
+## Módulo 5 — Simulação Monte Carlo
 
 ### `GET /api/v1/graficos/monte-carlo/latest`
 
@@ -148,7 +150,7 @@ Retorna os resultados da última simulação de Monte Carlo executada (dados moc
 
 ---
 
-## Módulo 5 — ETL e Ingestão
+## Módulo 6 — ETL e Ingestão
 
 ### `POST /etl/executar`
 

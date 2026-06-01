@@ -1,8 +1,9 @@
 # 🚀 Manual de Instalação — Mapa de Crédito Inclusivo
 
-**Projeto:** API 3 —  de Crédito Inclusivo (DM Card)  
+**Projeto:** API 3 — Crédito Inclusivo (DM Card)  
 **Stack:** FastAPI (Python) + React (Frontend) + SQLite  
 **Equipe:** Galáticos — FATEC SJC | ADS 3 | 2026-1
+
 
 ---
 
@@ -13,10 +14,13 @@ Antes de prosseguir, certifique-se de ter instalado:
 | Ferramenta | Versão mínima | Verificação |
 |---|---|---|
 | Docker | 24.x | `docker --version` |
-| Docker Compose | 2.x (plugin) | `docker compose version` |
+| Docker Compose | plugin do Docker | `docker compose version` |
 | Git | 2.x | `git --version` |
+| Python | 3.11+ | `python --version` ou `py -3 --version` |
+| Node.js | 20+ | `node --version` |
+| npm | 10+ | `npm --version` |
 
-> **Alternativa sem Docker:** Python 3.11+, Node.js 20+ e npm 10+.
+> **Alternativa sem Docker:** use Python 3.11+ para o backend e Node.js 20+ para o frontend.
 
 ---
 
@@ -26,27 +30,26 @@ Antes de prosseguir, certifique-se de ter instalado:
 
 ```bash
 git clone https://github.com/Galaticos-API/API-3.git
-cd <repositorio>
+cd API-3
 ```
 
-### 2. Configurar variáveis de ambiente
+### 2. Copiar o arquivo de ambiente
 
 ```bash
 cp .env.example .env
 ```
 
-Edite o arquivo `.env` com as configurações do seu ambiente:
+O backend lê somente as chaves de API do Groq. Preencha as variáveis abaixo em `.env`:
 
 ```env
-# Banco de dados
-DB_FILENAME=credito_inclusivo.db
+GroqKey1=token-API-Groq1
+GroqKey2=token-API-Groq2
+GroqKey3=token-API-Groq3
+GroqKey4=token-API-Groq4
+GroqKey5=token-API-Groq5
+```
 
-# Autenticação
-SECRET_KEY=substitua_por_uma_chave_secreta_forte
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=60
-
-
+> Se o assistente de IA não for usado, essas chaves não são obrigatórias para iniciar o backend.
 
 ### 3. Subir todos os containers
 
@@ -64,7 +67,6 @@ A flag `-d` executa em modo background. A flag `--build` garante que as imagens 
 | Backend — Swagger UI | http://localhost:8000/docs |
 | Backend — ReDoc | http://localhost:8000/redoc |
 
-
 ### Comandos úteis
 
 ```bash
@@ -75,7 +77,7 @@ docker compose logs -f frontend
 # Parar todos os containers
 docker compose down
 
-# Reiniciar do zero (apaga volumes e imagens)
+# Reiniciar do zero (remove imagens e volumes)
 docker compose down -v --rmi all
 docker compose up -d --build
 ```
@@ -87,54 +89,65 @@ docker compose up -d --build
 ### Backend (FastAPI / Python)
 
 ```bash
-# 1. Acessar pasta do backend
 cd backend_python
-
-# 2. Criar ambiente virtual
 python -m venv venv
+```
 
-# 3. Ativar o ambiente virtual
+#### Ativar o ambiente virtual
+
+```bash
 # Windows:
 venv\Scripts\activate
+
 # Linux / macOS:
 source venv/bin/activate
+```
 
-# 4. Instalar dependências
+#### Instalar dependências
+
+```bash
 pip install -r requirements.txt
+```
 
-# 5. Configurar variáveis de ambiente
-cp .env.example .env
-# Edite o .env conforme necessário
+#### Configurar variáveis de ambiente
 
-# 6. Criar o banco de dados
+```bash
+cp ..\.env.example ..\.env
+```
+
+Edite o arquivo `.env` na raiz do projeto se quiser usar o assistente de IA.
+
+#### Criar o banco de dados
+
+```bash
 python criar_banco_dados.py
+```
 
-# 7. Coletar dados do BCB
+#### Executar o ETL
+
+```bash
 python etl_bcb.py
+```
 
-# 8. Iniciar o servidor
+#### Iniciar o backend
+
+```bash
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-O backend estará disponível em: http://localhost:8000  
-Swagger UI: http://localhost:8000/docs
+O backend estará disponível em: http://localhost:8000
+
+---
 
 ### Frontend (React + Vite)
 
 ```bash
-# Em outro terminal, acessar pasta do frontend
 cd frontend
-
-# Instalar dependências
 npm install
-
-# Iniciar servidor de desenvolvimento
-npm run dev
+npm run dev -- --host 0.0.0.0 --port 5173
 ```
 
 O frontend estará disponível em: http://localhost:5173
-
-
 
 ---
 
@@ -143,7 +156,15 @@ O frontend estará disponível em: http://localhost:5173
 | Erro | Causa | Solução |
 |---|---|---|
 | `database is locked` | Outro processo acessando o SQLite | Feche DBeavers ou outros clientes e reinicie |
-| `permission denied` na pasta `database/` | Permissão de escrita ausente | `chmod 755 database/` |
-| ETL retorna 502/503 | API do BCB instável | Aguarde alguns minutos — o ETL tem retry automático |
-| Container não sobe | Porta 80 ou 8000 em uso | Mude a porta no `docker-compose.yml` |
-| `ModuleNotFoundError` | Ambiente virtual não ativado | Execute `source venv/bin/activate` |
+| `permission denied` na pasta `database/` | Permissão de escrita ausente | Garanta permissões de escrita na pasta `database` |
+| ETL falha | API do BCB instável ou banco ausente | Aguarde, verifique conexão e recarregue o ETL |
+| Container não sobe | Porta 80 ou 8000 em uso | Pare o serviço ou ajuste as portas no `docker-compose.yml` |
+| `ModuleNotFoundError` | Ambiente virtual não ativado | Ative o `venv` antes de rodar o Python |
+
+---
+
+## Observações
+
+- O backend atual não implementa autenticação JWT.
+- O login no frontend está configurado como simulado.
+- O arquivo `.env.example` já fornece o template das variáveis necessárias para o LLM.
