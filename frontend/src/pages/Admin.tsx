@@ -28,7 +28,13 @@ export function Admin() {
   // Scroll automático do terminal
   useEffect(() => {
     if (terminalEndRef.current) {
-      terminalEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      const parent = terminalEndRef.current.parentElement;
+      if (parent) {
+        parent.scrollTo({
+          top: parent.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
     }
   }, [terminalLogs, isTerminalOpen]);
 
