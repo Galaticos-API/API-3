@@ -150,7 +150,7 @@ export function Dashboard() {
           
           doc.setFontSize(22);
           doc.setTextColor(40, 40, 40);
-          doc.text("Relatório de Oportunidades", 14, 22);
+          doc.text("Mapa de Oportunidades de Crédito - DM", 14, 22);
           
           doc.setFontSize(11);
           doc.setTextColor(100, 100, 100);
@@ -220,7 +220,7 @@ export function Dashboard() {
             }
           }
           
-          doc.save(`relatorio_oportunidades_${new Date().toISOString().slice(0, 10)}.pdf`);
+          doc.save(`mapa_oportunidades_dm_${new Date().toISOString().slice(0, 10)}.pdf`);
         } catch (err: any) {
           console.error("Erro ao gerar PDF:", err);
           alert("Erro ao gerar relatório: " + (err.message || String(err)));
@@ -253,9 +253,12 @@ export function Dashboard() {
 
       {/* ── Header ──────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-vocedm-navy">Dashboard de Oportunidades</h2>
-          <p className="text-muted-foreground mt-1">Análise territorial de potencial de crédito inclusivo</p>
+        <div className="flex items-center gap-4">
+          <img src="/favicon.ico" alt="Logo DM" className="w-10 h-10 object-contain rounded-md" />
+          <div>
+            <h2 className="text-3xl font-bold text-vocedm-navy">Mapa de Oportunidades de Crédito - DM</h2>
+            <p className="text-muted-foreground mt-1">Análise territorial de potencial de crédito inclusivo</p>
+          </div>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
