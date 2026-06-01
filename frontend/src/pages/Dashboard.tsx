@@ -3,7 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../co
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Badge } from "../components/ui/badge";
 import { BrazilMap } from "../components/BrazilMap";
-import { X, RefreshCw, AlertTriangle } from "lucide-react";
+import { X, RefreshCw, AlertTriangle, Download, Table, Printer, FileText } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../components/ui/dropdown-menu";
+import { Button } from "../components/ui/button";
+import { toPng } from "html-to-image";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 import { api } from "../services/api";
 import { useGrafico } from "../hooks/useGrafico";
@@ -129,8 +139,117 @@ export function Dashboard() {
     ? grf08.data?.ranking.find(r => r.sigla_uf === selectedState)
     : null;
 
+  const [isExporting, setIsExporting] = useState(false);
+
+  const exportDashboard = async (format: "pdf" | "csv") => {
+    if (format === "pdf") {
+      setIsExporting(true);
+      setTimeout(async () => {
+        try {
+          const doc = new jsPDF("p", "mm", "a4");
+          
+          doc.setFontSize(22);
+          doc.setTextColor(40, 40, 40);
+          doc.text("Relatório de Oportunidades", 14, 22);
+          
+          doc.setFontSize(11);
+          doc.setTextColor(100, 100, 100);
+          doc.text(`Gerado em: ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`, 14, 30);
+          
+          const filtrosTexto = [];
+          if (selectedMacroRegion) filtrosTexto.push(`Macrorregião: ${MACRO_REGIONS[selectedMacroRegion].label}`);
+          if (selectedState) filtrosTexto.push(`Estado: ${selectedState}`);
+          
+          if (filtrosTexto.length > 0) {
+            doc.text(`Filtros Ativos: ${filtrosTexto.join(" | ")}`, 14, 38);
+          } else {
+            doc.text("Filtros Ativos: Nenhum (Visão Geral Brasil)", 14, 38);
+          }
+
+          const ranking = grf08.data?.ranking ?? [];
+          const dadosFiltrados = selectedMacroRegion 
+            ? ranking.filter(r => MACRO_REGIONS[selectedMacroRegion].states.includes(r.sigla_uf))
+            : ranking;
+
+          const tableColumn = ["Posição", "UF", "Nome do Estado", "Score IOI", "Risco", "Tendência"];
+          const tableRows = dadosFiltrados.map((r, index) => [
+            index + 1,
+            r.sigla_uf,
+            r.nome,
+            r.score_oportunidade.toFixed(2),
+            r.componente_risco != null ? r.componente_risco.toFixed(2) : "-",
+            (r as any).componente_tendencia != null ? (r as any).componente_tendencia.toFixed(2) : "-"
+          ]);
+
+          autoTable(doc, {
+            startY: 46,
+            head: [tableColumn],
+            body: tableRows,
+            theme: 'striped',
+            headStyles: { fillColor: [15, 30, 84] },
+            styles: { fontSize: 9 },
+            alternateRowStyles: { fillColor: [245, 247, 250] }
+          });
+          
+          const chartsContainer = document.getElementById("dashboard-charts");
+          if (chartsContainer) {
+            const imgData = await toPng(chartsContainer, { backgroundColor: "#ffffff" });
+            
+            // To properly calculate aspect ratio, we can create an Image object
+            const img = new Image();
+            img.src = imgData;
+            await new Promise((resolve) => { img.onload = resolve; });
+
+            const pdfWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const marginX = 14;
+            const imgWidth = pdfWidth - (marginX * 2);
+            const imgHeight = (img.height * imgWidth) / img.width;
+            
+            doc.addPage();
+            
+            let position = 14;
+            doc.addImage(imgData, 'PNG', marginX, position, imgWidth, imgHeight);
+            let heightLeft = imgHeight - (pageHeight - position);
+            
+            while (heightLeft > 0) {
+              position -= pageHeight;
+              doc.addPage();
+              doc.addImage(imgData, 'PNG', marginX, position, imgWidth, imgHeight);
+              heightLeft -= pageHeight;
+            }
+          }
+          
+          doc.save(`relatorio_oportunidades_${new Date().toISOString().slice(0, 10)}.pdf`);
+        } catch (err: any) {
+          console.error("Erro ao gerar PDF:", err);
+          alert("Erro ao gerar relatório: " + (err.message || String(err)));
+        } finally {
+          setIsExporting(false);
+        }
+      }, 100);
+      return;
+    }
+
+    if (format === "csv") {
+      let csvContent = "data:text/csv;charset=utf-8,";
+      csvContent += "UF,Nome,Score IOI,Risco,Tendencia\n";
+      const ranking = grf08.data?.ranking ?? [];
+      ranking.forEach(r => {
+        csvContent += `${r.sigla_uf},${r.nome},${r.score_oportunidade},${r.componente_risco ?? ''},${(r as any).componente_tendencia ?? ''}\n`;
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `ranking_ioi_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div id="dashboard-content" className="space-y-6">
 
       {/* ── Header ──────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -140,6 +259,26 @@ export function Dashboard() {
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
+          {/* Exportar */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2 bg-white" disabled={isExporting}>
+                {isExporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                {isExporting ? "Exportando..." : "Exportar"}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-white">
+              <DropdownMenuItem onClick={() => exportDashboard("pdf")} className="gap-2 cursor-pointer">
+                <FileText className="w-4 h-4 text-red-500" />
+                Gerar Relatório (PDF)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportDashboard("csv")} className="gap-2 cursor-pointer">
+                <Table className="w-4 h-4 text-green-500" />
+                Exportar Dados IOI (CSV)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {/* Macrorregião */}
           <div className="flex items-center gap-2">
             <label className="text-sm text-muted-foreground">Região:</label>
@@ -217,7 +356,8 @@ export function Dashboard() {
       </div>
 
       {/* ── Mapa + Ranking IOI ───────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div id="dashboard-charts" className="space-y-6 pb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Mapa do Brasil</CardTitle>
@@ -369,6 +509,7 @@ export function Dashboard() {
         {grf09.data && <ChartMonteCarlo data={grf09.data} />}
       </ChartCard>
 
+      </div>
     </div>
   );
 }
