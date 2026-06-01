@@ -133,25 +133,42 @@ export interface MonteCarloData {
   media_perdas?: number;
   var_95_calculado?: number;
   var_99_calculado?: number;
+  scenarios?: Array<{ scenario: number; retorno: number; inadimplencia: number; roi: number }>;
 }
 
 // ─── API Calls ────────────────────────────────────────────────────────────────
 
 export const api = {
   ufs: {
-    listar: ()               => get<UF[]>("/graficos/ufs"),
+    listar: () => get<UF[]>("/graficos/ufs"),
     detalhe: (sigla: string) => get<UF>(`/graficos/ufs/${sigla}`),
   },
   graficos: {
-    creditoSfn:             (anos = 10)    => get<CreditoSfnData>(`/graficos/credito-sfn?anos=${anos}`),
-    macroContexto:          (anos = 5)     => get<MacroContextoData>(`/graficos/macro-contexto?anos=${anos}`),
-    inadimplenciaRegional:  ()             => get<InadimplenciaRegionalData>("/graficos/inadimplencia-regional"),
-    heatmapEstados:         ()             => get<HeatmapEstadosData>("/graficos/heatmap-estados"),
-    scatterPfPj:            ()             => get<ScatterPfPjData>("/graficos/scatter-pf-pj"),
-    estudioEstado:          (sigla: string, anos = 5) =>
-                                             get<EstudoEstadoData>(`/graficos/estudo-estado/${sigla}?anos=${anos}`),
-    scoreOportunidade:      ()             => get<ScoreOportunidadeData>("/graficos/score-oportunidade"),
-    monteCarlo:             ()             => get<MonteCarloData>("/graficos/monte-carlo/latest"),
+    creditoSfn: (anos = 10) => get<CreditoSfnData>(`/graficos/credito-sfn?anos=${anos}`),
+    macroContexto: (anos = 5) => get<MacroContextoData>(`/graficos/macro-contexto?anos=${anos}`),
+    inadimplenciaRegional: () => get<InadimplenciaRegionalData>("/graficos/inadimplencia-regional"),
+    heatmapEstados: () => get<HeatmapEstadosData>("/graficos/heatmap-estados"),
+    scatterPfPj: () => get<ScatterPfPjData>("/graficos/scatter-pf-pj"),
+    estudioEstado: (sigla: string, anos = 5) =>
+      get<EstudoEstadoData>(`/graficos/estudo-estado/${sigla}?anos=${anos}`),
+    scoreOportunidade: () => get<ScoreOportunidadeData>("/graficos/score-oportunidade"),
+    monteCarlo: () => get<MonteCarloData>("/graficos/monte-carlo/latest"),
+    executarMonteCarlo: (params: {
+      sigla_uf: string;
+      montante: number;
+      iterations: number;
+      avg_return: number;
+      volatility: number;
+      lgd: number;
+    }) =>
+      fetch(`${BASE}/graficos/monte-carlo`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+      }).then((res) => {
+        if (!res.ok) throw new Error("Erro na simulação do servidor");
+        return res.json() as Promise<MonteCarloData>;
+      }),
   },
   etl: {
     status: () => get<{ status: string; categorias: { categoria: string; ultima_ingestao: string; total_registros: number }[] }>("/etl/status"),

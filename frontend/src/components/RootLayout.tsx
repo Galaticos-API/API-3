@@ -118,14 +118,6 @@ export function RootLayout() {
               );
             })}
           </nav>
-
-          {/* Sidebar card */}
-          <div className="mx-4 mt-auto mb-2 rounded-xl p-4 border border-vocedm-salmon bg-white">
-            <h3 className="font-bold text-vocedm-navy text-xs mb-1">Sistema de Inteligência</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Análise preditiva para expansão sustentável de crédito inclusivo
-            </p>
-          </div>
         </aside>
 
         {/* Main Content */}

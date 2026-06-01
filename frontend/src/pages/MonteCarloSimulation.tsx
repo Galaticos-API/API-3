@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Label } from "../components/ui/label";
@@ -19,6 +19,7 @@ import {
 import { Activity, Play, RefreshCw, TrendingUp, AlertTriangle } from "lucide-react";
 import { Badge } from "../components/ui/badge";
 import { Progress } from "../components/ui/progress";
+import { api, type UF } from "../services/api";
 
 interface SimulationResult {
   scenario: number;
@@ -37,53 +38,66 @@ export function MonteCarloSimulation() {
   const [investmentValue, setInvestmentValue] = useState(1000000);
   const [avgReturn, setAvgReturn] = useState(12);
   const [volatility, setVolatility] = useState(3.5);
-  const [selectedRegion, setSelectedRegion] = useState("SP-1");
+  const [lgd, setLgd] = useState(65);
+  const [selectedRegion, setSelectedRegion] = useState("SP");
+  const [ufs, setUfs] = useState<UF[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState(0);
   const [hasResults, setHasResults] = useState(false);
   const [results, setResults] = useState<SimulationResult[]>([]);
 
-  // Função para executar simulação Monte Carlo
+  // Carrega as UFs do banco de dados na inicialização
+  useEffect(() => {
+    api.ufs.listar()
+      .then((data) => {
+        setUfs(data);
+        if (data.length > 0) {
+          const sp = data.find((u) => u.sigla_uf === "SP");
+          setSelectedRegion(sp ? "SP" : data[0].sigla_uf);
+        }
+      })
+      .catch((err) => console.error("Erro ao listar UFs:", err));
+  }, []);
+
+  // Função para executar simulação Monte Carlo no backend
   const runSimulation = () => {
     setIsRunning(true);
     setProgress(0);
     setHasResults(false);
 
-    // Simula processamento gradual
+    // Simula progresso visual gradual até 90% enquanto aguarda a API
+    let currentProgress = 0;
     const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
-        }
-        return prev + 10;
-      });
+      currentProgress = Math.min(currentProgress + 10, 90);
+      setProgress(currentProgress);
     }, 100);
 
-    // Simula o cálculo dos resultados
-    setTimeout(() => {
-      const simulationResults: SimulationResult[] = [];
-
-      for (let i = 0; i < iterations; i++) {
-        // Gera números aleatórios usando distribuição normal aproximada
-        const randomReturn = avgReturn + (Math.random() - 0.5) * 2 * volatility;
-        const randomInadimplencia = Math.max(0, 4 + (Math.random() - 0.5) * 2 * 1.5);
-        const retorno = investmentValue * (1 + randomReturn / 100);
-        const roi = ((retorno - investmentValue) / investmentValue) * 100;
-
-        simulationResults.push({
-          scenario: i + 1,
-          retorno: retorno,
-          inadimplencia: randomInadimplencia,
-          roi: roi,
-        });
-      }
-
-      setResults(simulationResults);
-      setHasResults(true);
-      setIsRunning(false);
-      clearInterval(interval);
-    }, 1200);
+    // Dispara a simulação real baseada no banco de dados no backend Python
+    api.graficos.executarMonteCarlo({
+      sigla_uf: selectedRegion,
+      montante: investmentValue,
+      iterations: iterations,
+      avg_return: avgReturn,
+      volatility: volatility,
+      lgd: lgd / 100, // Converte de % para decimal
+    })
+      .then((res) => {
+        setProgress(100);
+        setTimeout(() => {
+          if (res.scenarios) {
+            setResults(res.scenarios);
+          }
+          setHasResults(true);
+          setIsRunning(false);
+          clearInterval(interval);
+        }, 200);
+      })
+      .catch((err) => {
+        console.error("Erro ao rodar simulação Monte Carlo:", err);
+        alert("Ocorreu um erro ao executar a simulação no servidor. Certifique-se de que os containers do backend estão ativos e tente novamente.");
+        setIsRunning(false);
+        clearInterval(interval);
+      });
   };
 
   // Calcula estatísticas
@@ -203,17 +217,21 @@ export function MonteCarloSimulation() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="region">Região para Análise</Label>
+              <Label htmlFor="region">Região / Estado para Análise</Label>
               <Select value={selectedRegion} onValueChange={setSelectedRegion}>
                 <SelectTrigger id="region">
-                  <SelectValue />
+                  <SelectValue placeholder="Selecione um estado..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="SP-1">São Paulo - Zona Leste</SelectItem>
-                  <SelectItem value="RJ-1">Rio de Janeiro - Zona Norte</SelectItem>
-                  <SelectItem value="MG-1">Belo Horizonte - RM</SelectItem>
-                  <SelectItem value="BA-1">Salvador - Subúrbio</SelectItem>
-                  <SelectItem value="PE-1">Recife - RM</SelectItem>
+                  {ufs.length === 0 ? (
+                    <SelectItem value={selectedRegion}>{selectedRegion}</SelectItem>
+                  ) : (
+                    ufs.map((uf) => (
+                      <SelectItem key={uf.sigla_uf} value={uf.sigla_uf}>
+                        {uf.nome} ({uf.sigla_uf}) - {uf.regiao_br}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -232,6 +250,14 @@ export function MonteCarloSimulation() {
                 <span className="text-sm font-medium text-orange-600">{volatility}%</span>
               </div>
               <Slider value={[volatility]} onValueChange={(v) => setVolatility(v[0])} min={1} max={10} step={0.5} />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Perda sob Inadimplência (LGD) (%)</Label>
+                <span className="text-sm font-medium text-red-600">{lgd}%</span>
+              </div>
+              <Slider value={[lgd]} onValueChange={(v) => setLgd(v[0])} min={10} max={100} step={5} />
             </div>
 
             <Button onClick={runSimulation} disabled={isRunning} className="w-full" size="lg">

@@ -8,8 +8,9 @@ from fastapi import APIRouter, HTTPException, Query
 from pathlib import Path
 import sqlite3
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, List
 from api.config import DB_FILENAME
+from pydantic import BaseModel, Field
 
 router = APIRouter()
 
@@ -473,6 +474,177 @@ def score_oportunidade():
 # GRF-09  Monte Carlo (Histograma + KDE)
 # ─────────────────────────────────────────────
 
+class MonteCarloRequest(BaseModel):
+    sigla_uf: str = Field(..., min_length=2, max_length=2)
+    montante: float = Field(1000000.0, gt=0)
+    iterations: int = Field(1000, ge=10, le=10000)
+    avg_return: float = Field(12.0, ge=0)
+    volatility: float = Field(3.5, ge=0)
+    lgd: float = Field(0.65, ge=0.0, le=1.0)
+
+
+@router.post("/monte-carlo")
+def rodar_monte_carlo(params: MonteCarloRequest):
+    """
+    Executa a simulação Monte Carlo usando dados do banco de dados para a UF selecionada.
+    Calcula inadimplência histórica da UF para calibrar a média e volatilidade
+    e projeta as perdas da carteira e ROI.
+    """
+    import json, numpy as np
+    
+    uf = params.sigla_uf.upper()
+    if uf not in _UF_ORDER:
+        raise HTTPException(status_code=400, detail=f"UF '{uf}' inválida.")
+
+    conn = _get_conn()
+    try:
+        # Obter nome e detalhes da UF
+        uf_row = conn.execute("SELECT nome FROM dim_uf WHERE sigla_uf = ?", (uf,)).fetchone()
+        nome_uf = uf_row["nome"] if uf_row else uf
+
+        id_serie = _serie_inad_pf(uf)
+
+        # Buscar histórico de inadimplência da UF
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT valor, data_referencia 
+            FROM fact_serie_temporal 
+            WHERE id_serie = ? 
+            ORDER BY data_referencia ASC
+        """, (id_serie,))
+        rows = cursor.fetchall()
+
+        # Fallback para a série nacional (21082) se houver poucos dados
+        usando_fallback = False
+        if len(rows) < 3:
+            cursor.execute("""
+                SELECT valor, data_referencia 
+                FROM fact_serie_temporal 
+                WHERE id_serie = 21082 
+                ORDER BY data_referencia ASC
+            """)
+            rows = cursor.fetchall()
+            usando_fallback = True
+
+        if not rows:
+            # Caso extremo de banco sem dados, usa valores estáticos realistas de mercado
+            valores = [0.045]  # 4.5% inadimplência padrão
+            data_ref = datetime.now().strftime("%Y-%m-%d")
+        else:
+            valores = [r["valor"] / 100 for r in rows if r["valor"] is not None and r["valor"] > 0]
+            data_ref = rows[-1]["data_referencia"]
+
+        # Se mesmo filtrando valores maiores que zero a lista ficou vazia
+        if not valores:
+            valores = [0.045]
+
+        # Ajuste de distribuição Log-normal com base no histórico
+        log_valores = np.log(valores)
+        mu_inad = float(np.mean(log_valores))
+        sigma_inad = float(np.std(log_valores))
+        if sigma_inad < 0.05:
+            sigma_inad = 0.3  # Volatilidade padrão se houver pouca variação no histórico
+
+        # Geração dos cenários de inadimplência (Log-normal)
+        rng_np = np.random.default_rng()
+        sim_inad = rng_np.lognormal(mu_inad, sigma_inad, params.iterations)
+        sim_inad = np.clip(sim_inad, 0.0, 1.0)  # Clampa entre 0 e 100%
+
+        # Geração dos cenários de flutuação de retorno esperado (distribuição normal)
+        # avg_return e volatility são passados como porcentagens (ex: 12% e 3.5%)
+        sim_nom_return = rng_np.normal(params.avg_return, params.volatility, params.iterations)
+
+        # Computação de cada cenário
+        scenarios = []
+        losses = []
+        for i in range(params.iterations):
+            # inadimplência simulada para o cenário i
+            inad_val = float(sim_inad[i])
+            
+            # taxa de perda do cenário i = inadimplência * LGD
+            loss_rate = inad_val * params.lgd
+            loss_value = loss_rate * params.montante
+            losses.append(loss_value)
+
+            # ROI líquido = Retorno Nominal - Taxa de Perda * 100
+            roi_val = float(sim_nom_return[i] - (loss_rate * 100))
+            
+            # Retorno líquido final
+            retorno_val = float(params.montante * (1 + roi_val / 100))
+
+            scenarios.append({
+                "scenario": i + 1,
+                "inadimplencia": round(inad_val * 100, 4), # em porcentagem
+                "roi": round(roi_val, 4),
+                "retorno": round(retorno_val, 2)
+            })
+
+        losses = np.array(losses)
+        var_95_val = float(np.percentile(losses, 95))
+        var_99_val = float(np.percentile(losses, 99))
+        inadimplencia_projetada_media = float(np.mean(sim_inad) * 100)
+        media_perdas_val = float(np.mean(losses))
+
+        # Obter o ioi_score para a UF
+        cursor.execute("SELECT score_oportunidade FROM ranking_oportunidade WHERE sigla_uf = ?", (uf,))
+        score_row = cursor.fetchone()
+        ioi_score = float(score_row["score_oportunidade"]) if score_row else 5.0
+
+        # Persistir na tabela fact_simulacao_risco
+        parametros_json = {
+            "montante": params.montante,
+            "iterations": params.iterations,
+            "avg_return": params.avg_return,
+            "volatility": params.volatility,
+            "lgd": params.lgd,
+            "usou_fallback": usando_fallback
+        }
+        
+        cursor.execute("""
+            INSERT INTO fact_simulacao_risco (
+                usuario_id, sigla_uf, data_referencia,
+                inadimplencia_projetada, ioi_score,
+                var_95, var_99, parametros_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            1, # usuario_id padrão
+            uf,
+            data_ref,
+            round(inadimplencia_projetada_media, 4),
+            round(ioi_score, 2),
+            round(var_95_val, 2),
+            round(var_99_val, 2),
+            json.dumps(parametros_json)
+        ))
+        conn.commit()
+        simulation_id = cursor.lastrowid
+
+        return {
+            "grf": "GRF-09",
+            "titulo": "Simulação Monte Carlo",
+            "encontrado": True,
+            "simulacao": {
+                "id": simulation_id,
+                "sigla_uf": uf,
+                "nome_uf": nome_uf,
+                "inadimplencia_projetada": round(inadimplencia_projetada_media, 4),
+                "ioi_score": round(ioi_score, 2),
+                "var_95": round(var_95_val, 2),
+                "var_99": round(var_99_val, 2),
+                "criado_em": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            },
+            "scenarios": scenarios,
+            "media_perdas": round(media_perdas_val, 2),
+            "var_95_calculado": round(var_95_val, 2),
+            "var_99_calculado": round(var_99_val, 2),
+        }
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao executar simulação: {str(e)}")
+    finally:
+        conn.close()
+
+
 @router.get("/monte-carlo/latest")
 def monte_carlo_latest():
     """
@@ -504,11 +676,105 @@ def monte_carlo_latest():
         montante = params.get("montante", 150_000_000)
         lgd      = params.get("lgd", 0.65)
         inad     = row["inadimplencia_projetada"] / 100
+        iterations = params.get("iterations", 10_000)
 
         rng_np = np.random.default_rng(42)
         mu     = np.log(inad) - 0.5 * 0.3**2
         sigma  = 0.3
-        sim    = rng_np.lognormal(mu, sigma, 10_000)
+        sim    = rng_np.lognormal(mu, sigma, iterations)
+        perdas = (sim * montante * lgd).tolist()
+
+        # Histograma com 50 bins
+        counts, edges = np.histogram(perdas, bins=50)
+        histogram = [
+            {"bin_start": round(edges[i], 2), "bin_end": round(edges[i+1], 2), "contagem": int(counts[i])}
+            for i in range(len(counts))
+        ]
+
+        return {
+            "grf": "GRF-09",
+            "titulo": "Simulação Monte Carlo",
+            "encontrado": True,
+            "simulacao": {
+                "id": row["id"],
+                "sigla_uf": row["sigla_uf"],
+                "nome_uf": row["nome"],
+                "inadimplencia_projetada": row["inadimplencia_projetada"],
+                "ioi_score": row["ioi_score"],
+                "var_95": row["var_95"],
+                "var_99": row["var_99"],
+                "criado_em": row["criado_em"],
+            },
+            "histograma": histogram,
+            "media_perdas": round(float(np.mean(perdas)), 2),
+            "var_95_calculado": round(float(np.percentile(perdas, 95)), 2),
+            "var_99_calculado": round(float(np.percentile(perdas, 99)), 2),
+        }
+    finally:
+        conn.close()
+
+
+@router.get("/monte-carlo/historico")
+def listar_historico_simulacoes(limite: int = Query(20, ge=1, le=100)):
+    """
+    Retorna o histórico das últimas simulações salvas no banco de dados.
+    """
+    conn = _get_conn()
+    try:
+        rows = _rows(conn, """
+            SELECT s.id, s.sigla_uf, u.nome as nome_uf, s.inadimplencia_projetada,
+                   s.ioi_score, s.var_95, s.var_99, s.parametros_json, s.criado_em
+            FROM fact_simulacao_risco s
+            JOIN dim_uf u ON u.sigla_uf = s.sigla_uf
+            ORDER BY s.criado_em DESC
+            LIMIT ?
+        """, (limite,))
+        
+        # Deserializar parametros_json de cada linha para facilitar no front-end
+        import json
+        for row in rows:
+            if row.get("parametros_json"):
+                try:
+                    row["parametros"] = json.loads(row["parametros_json"])
+                except Exception:
+                    row["parametros"] = {}
+                del row["parametros_json"]
+        return rows
+    finally:
+        conn.close()
+
+
+@router.get("/monte-carlo/{id}")
+def obter_simulacao_por_id(id: int):
+    """
+    Recupera o resultado de uma simulação salva no banco pelo ID e recria a distribuição de perdas.
+    """
+    conn = _get_conn()
+    try:
+        row = conn.execute("""
+            SELECT s.id, s.sigla_uf, u.nome, s.inadimplencia_projetada,
+                   s.ioi_score, s.var_95, s.var_99,
+                   s.parametros_json, s.criado_em
+            FROM fact_simulacao_risco s
+            JOIN dim_uf u ON u.sigla_uf = s.sigla_uf
+            WHERE s.id = ?
+        """, (id,)).fetchone()
+
+        if not row:
+            raise HTTPException(status_code=404, detail=f"Simulação com ID {id} não encontrada.")
+
+        import json, numpy as np
+
+        params = json.loads(row["parametros_json"]) if row["parametros_json"] else {}
+        montante = params.get("montante", 150_000_000)
+        lgd      = params.get("lgd", 0.65)
+        inad     = row["inadimplencia_projetada"] / 100
+        iterations = params.get("iterations", 10_000)
+
+        rng_np = np.random.default_rng(42)
+        mu     = np.log(inad) - 0.5 * 0.3**2
+        sigma  = 0.3
+        sim    = rng_np.lognormal(mu, sigma, iterations)
         perdas = (sim * montante * lgd).tolist()
 
         # Histograma com 50 bins
