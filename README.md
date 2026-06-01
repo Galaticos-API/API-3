@@ -47,10 +47,10 @@ O projeto visa desenvolver uma plataforma web de inteligência de crédito. Entr
 
 ## 🎥 Demonstração
 
-Abaixo, você pode assistir ao vídeo de demonstração do funcionamento da nossa aplicação:
+Abaixo, você pode visualizar a demonstração do funcionamento da nossa aplicação:
 
 <div align="center">
-  <video src="DOCS/api3.mp4" width="100%" controls></video>
+  <img src="DOCS/api3.gif" alt="Demonstração do Projeto" width="100%">
 </div>
 
 ## 📋 Backlogs
