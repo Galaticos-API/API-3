@@ -154,10 +154,10 @@ Uma User Story é considerada entregue quando todos os critérios abaixo forem s
 
 Os artefatos exigidos ao decorrer do projeto estarão listados e disponibilizados aqui:
 
-- [Manual de Instalação (obrigatório, no Git)](#)
-- [Manual do Usuário (obrigatório)](#)
-- [Documentação API - Application Programming Interface](#)
-- [Modelagem de Banco de Dados ou Arquivo de dados](#)
+- [Manual de Instalação (obrigatório, no Git)](DOCS/manual_instalacao.md)
+- [Manual do Usuário (obrigatório)](DOCS/manual_usuario.md)
+- [Documentação API - Application Programming Interface](DOCS/documentacao_api.md)
+- [Modelagem de Banco de Dados ou Arquivo de dados](DOCS/dicionario_dados.md)
 
 ## 👥 Equipe
 

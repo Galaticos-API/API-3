@@ -198,13 +198,13 @@ groq>=0.9.0
 │                        │  - macroContexto (Selic, IPCA)           │  │
 │                        │  - filtros ativos (UF selecionada)       │  │
 │                        └──────────────────┬───────────────────────┘  │
-│                                           │ POST /api/v1/chat        │
+│                                           │ POST /api/v1/llm/chat        │
 └───────────────────────────────────────────┼──────────────────────────┘
                                             │
 ┌───────────────────────────────────────────▼──────────────────────────┐
 │                         BACKEND (fastAPI)                            │
 │                                                                      │
-│  /api/v1/chat  (novo endpoint)                                       │
+│  /api/v1/llm/chat  (novo endpoint)                                   │
 │  ┌─────────────────────────────────────────────────────────────┐     │
 │  │ 1. Valida payload (Pydantic)                                │     │
 │  │ 2. Busca dados do SQLite (se não vieram no payload)         │     │
@@ -325,7 +325,7 @@ Sem injeção de contexto, a LLM só sabe o que aprendeu no treinamento (dados a
 
 ### 8.2 Estrutura do payload (frontend → backend)
 
-O `AIAssistant.tsx` enviará o seguinte payload na requisição `POST /api/v1/chat`:
+O `AIAssistant.tsx` enviará o seguinte payload na requisição `POST /api/v1/llm/chat`:
 
 ```typescript
 // tipos baseados em frontend/src/services/api.ts
@@ -433,12 +433,12 @@ Esse bloco é inserido dentro da primeira mensagem do usuário (antes da pergunt
 
 ## 9. Especificação da rota backend
 
-### 9.1 Arquivo: `backend_python/api/routes/chat.py`
+### 9.1 Arquivo: `backend_python/api/routes/llm.py`
 
 ```python
 """
 Módulo Chat — Integração LLM
-Rota POST /api/v1/chat para o Assistente de IA do Dashboard DM.
+Rota POST /api/v1/llm/chat para o Assistente de IA do Dashboard DM.
 Provedor: Groq API | Modelo: llama-3.3-70b-versatile
 """
 
@@ -561,9 +561,9 @@ async def chat_with_assistant(payload: ChatRequest):
 
 ```python
 # backend_python/main.py — adicionar:
-from api.routes import graficos, etl, database, chat   # + chat
+from api.routes import graficos, etl, database, llm   # + llm
 
-app.include_router(chat.router, prefix="/api/v1", tags=["Assistente IA"])
+app.include_router(llm.router, prefix="/api/v1/llm", tags=["Assistente IA"])
 ```
 
 ### 9.3 Atualização do `requirements.txt`
@@ -584,7 +584,7 @@ groq>=0.9.0
 | `generateResponse()`   | **Remover**  | Função de mock com if/else — não é mais necessária              |
 | `setTimeout(1500ms)`   | **Remover**  | Substituído pela promise real da API                            |
 | Referência a `mockData`| **Remover**  | `kpiData` e `regionsData` do mock não devem alimentar a IA      |
-| `handleSendMessage()`  | **Refatorar**| Implementar `fetch` para `POST /api/v1/chat`                    |
+| `handleSendMessage()`  | **Refatorar**| Implementar `fetch` para `POST /api/v1/llm/chat`                    |
 | Props da IA            | **Adicionar**| Receber `scoreOportunidadeData`, `monteCarloData`, etc.         |
 | `isTyping`             | **Manter**   | Continua sendo ativado durante `await` da Promise               |
 | Histórico              | **Manter**   | Array `messages` já existe; truncar para as últimas 6 entradas  |
@@ -628,7 +628,7 @@ const handleSendMessage = async (text?: string) => {
 
   try {
     const res = await fetch(
-      `${import.meta.env.VITE_API_URL ?? "http://localhost:8000/api/v1"}/chat`,
+      `${import.meta.env.VITE_API_URL ?? "http://localhost:8000/api/v1"}/llm/chat`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -725,16 +725,16 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 if not GROQ_API_KEY:
     import warnings
-    warnings.warn("GROQ_API_KEY não configurada. Rota /chat retornará erro 503.")
+    warnings.warn("GROQ_API_KEY não configurada. Rota /api/v1/llm/chat retornará erro 503.")
 ```
 
 ### 12.4 CORS
 
-A rota `/chat` estará sob o prefixo `/api/v1`, que já é coberto pelo middleware CORS existente em `main.py`. Nenhuma mudança necessária.
+A rota `/chat` estará sob o prefixo `/api/v1/llm`, que já é coberto pelo middleware CORS existente em `main.py`. Nenhuma mudança necessária.
 
 ### 12.5 Rate limiting (opicional)
 
-em casos futuros se entrar em produção, considerar adicionar `slowapi` (rate limiting para FastAPI) para proteger o endpoint `/chat` de abusos:
+em casos futuros se entrar em produção, considerar adicionar `slowapi` (rate limiting para FastAPI) para proteger o endpoint `/api/v1/llm/chat` de abusos:
 
 ```python
 # futuro — limitar a 10 requisições/minuto por IP
@@ -795,8 +795,8 @@ Antes do merge, o desenvolvedor deve validar os seguintes cenários manualmente:
 Com base neste documento, as tasks de implementação devem cobrir:
 
 
-  - [ ] **S3-T1.2 — Backend: rota `/chat`**
-  - [ ] Criar `backend_python/api/routes/chat.py` conforme Seção 9
+  - [ ] **S3-T1.2 — Backend: rota `/api/v1/llm/chat`**
+  - [ ] Criar `backend_python/api/routes/llm.py` conforme Seção 9
   - [ ] Adicionar `groq>=0.9.0` ao `requirements.txt`
   - [ ] Registrar router em `main.py`
   - [ ] Obter e configurar `GROQ_API_KEY` no `.env`
@@ -831,4 +831,3 @@ Com base neste documento, as tasks de implementação devem cobrir:
 
 ---
 
-> **Nota:** Esse documento foi criado na sprint 3 como entrega da task S3-T1.1 (pesquisa) com pesquisas em documentações e consultas utilizando o Claude. Ele representa uma decisão arquitetural versionada.

@@ -1,162 +1,175 @@
-# Documentação da API — Mapa de Crédito Inclusivo
+﻿# Documentação da API — Mapa de Crédito Inclusivo
 
-**Base URL:** `http://localhost:8000/api/v1`  
+**Base URL:** `http://localhost:8000`  
+**Prefixo da API:** `/api/v1`  
 **Formato:** JSON  
-**Autenticação:** Atualmente não implementada — todas as rotas são públicas.  
+**Autenticação:** Não implementada — todas as rotas são públicas.  
 **Swagger UI:** `http://localhost:8000/docs`  
 **Versão:** 1.0
 
 ---
 
-## Autenticação
+## Roteamento principal
 
-**Nota:** A autenticação JWT está documentada mas não implementada no código atual. Todas as rotas são acessíveis sem autenticação. O frontend utiliza um sistema de login simulado com credenciais fixas.
-
----
-
-## Módulo 1 — Estados e Regiões
-
-### `GET /ufs`
-
-Lista os 27 estados brasileiros cadastrados na `dim_uf`.
-
-**Parâmetros de consulta:**
-
-| Parâmetro | Tipo   | Descrição                                              |
-|-----------|--------|--------------------------------------------------------|
-| `regiao`  | string | Filtra por macrorregião: `Norte`, `Nordeste`, `Centro-Oeste`, `Sudeste`, `Sul` |
+As rotas ativas são agrupadas em quatro routers:
+- `GET /api/v1/graficos` — gráficos e dados prontos para o dashboard
+- `POST /api/v1/etl` — ETL e ingestão de dados
+- `POST /api/v1/database` — criação e remoção do banco SQLite
+- `POST /api/v1/llm` — endpoints LLM/Groq
 
 ---
 
-### `GET /ufs/{sigla}`
+## Endpoints de gráficos e dados de apoio
 
-Retorna detalhes de um estado específico da federação.
+### `GET /api/v1/graficos/ufs`
+Lista os 27 estados brasileiros cadastrados na tabela `dim_uf`.
 
-**Parâmetros de rota:**
-
-| Parâmetro | Tipo   | Descrição              |
-|-----------|--------|------------------------|
-| `sigla`   | string | Sigla do estado (ex: `SP`, `MG`) |
-
----
-
-Invalida o token atual na tabela `sessao`.
-
-**Header obrigatório:**
-
-```http
-Authorization: Bearer <token>
-```
+Retorno:
+- `sigla_uf`
+- `nome`
+- `codigo_ibge`
+- `regiao_br`
 
 ---
 
-### `GET /me`
+### `GET /api/v1/graficos/ufs/{sigla}`
+Retorna detalhes de um estado específico.
 
-Retorna os dados do usuário autenticado a partir da tabela `usuario`.
-
----
-
-## Módulo 2 — Estados e Regiões
-
-### `GET /estados`
-
-Lista os 27 estados brasileiros cadastrados na `dim_uf`.
-
-**Parâmetros de consulta:**
-
-| Parâmetro | Tipo   | Descrição                                              |
-|-----------|--------|--------------------------------------------------------|
-| `regiao`  | string | Filtra por macrorregião: `Norte`, `Nordeste`, `Centro-Oeste`, `Sudeste`, `Sul` |
+Parâmetros de rota:
+- `sigla`: Sigla do estado, ex: `SP`, `MG`
 
 ---
 
-### `GET /estados/{sigla}`
+### `GET /api/v1/graficos/credito-sfn`
+Retorna a série histórica do saldo de crédito SFN nacional.
 
-Retorna detalhes de um estado específico da federação.
-
-**Parâmetros de rota:**
-
-| Parâmetro | Tipo   | Descrição              |
-|-----------|--------|------------------------|
-| `sigla`   | string | Sigla do estado (ex: `SP`, `MG`) |
+Query params:
+- `anos` (opcional, default=10, min=1, max=20)
 
 ---
 
-## Módulo 2 — Gráficos do Dashboard
+### `GET /api/v1/graficos/macro-contexto`
+Retorna dados macroeconômicos de Selic, IPCA e inadimplência PF.
 
-### `GET /graficos/credito-sfn`
-
-Dados para evolução do saldo de crédito SFN nacional (PF e PJ).
-
----
-
-### `GET /graficos/macro-contexto`
-
-Dados consolidados de:
-
-- Selic
-- IPCA
-- Inadimplência
+Query params:
+- `anos` (opcional, default=5, min=1, max=15)
 
 ---
 
-### `GET /graficos/inadimplencia-regional`
-
-Métricas de inadimplência por macrorregião:
-
-- Boxplot
-- Barras
+### `GET /api/v1/graficos/inadimplencia-regional`
+Retorna métricas de inadimplência por macrorregião:
+- `boxplot`
+- `barras`
 
 ---
 
-### `GET /graficos/heatmap-estados`
-
-Matriz de inadimplência por UF nos últimos 24 meses.
+### `GET /api/v1/graficos/heatmap-estados`
+Retorna a matriz UF × mês de inadimplência estadual para os últimos 24 meses.
 
 ---
 
-## Módulo 3 — Ranking de Oportunidades
+### `GET /api/v1/graficos/scatter-pf-pj`
+Retorna dados de dispersão PF vs PJ por estado com os últimos valores disponíveis.
+
+---
+
+### `GET /api/v1/graficos/estudo-estado/{sigla}`
+Retorna séries de um estado específico:
+- saldo PF
+- saldo PJ
+- inadimplência PF
+- inadimplência PJ
+
+Parâmetros de rota:
+- `sigla`: Sigla do estado
+
+Query params:
+- `anos` (opcional, default=5, min=1, max=10)
+
+---
 
 ### `GET /api/v1/graficos/score-oportunidade`
-
-Lista o ranking completo de estados ordenado pelo Score IOI (Índice de Oportunidade Inclusiva).
-
-**Fórmula de negócio:**
-
-```
-IOI = (s_inadimplência × 0,60 + s_tendência × 0,40) × 10
-```
+Retorna o ranking de estados pelo Score IOI.
 
 ---
 
-## Módulo 4 — Simulação Monte Carlo
+### `POST /api/v1/graficos/monte-carlo`
+Executa simulação Monte Carlo e grava o resultado no banco.
+
+Body JSON:
+- `sigla_uf`: string de 2 caracteres
+- `montante`: float > 0
+- `iterations`: int entre 10 e 10000
+- `avg_return`: float >= 0
+- `volatility`: float >= 0
+- `lgd`: float entre 0.0 e 1.0
+
+---
 
 ### `GET /api/v1/graficos/monte-carlo/latest`
-
-Retorna os resultados da última simulação de Monte Carlo executada (dados mockados no código atual).
-
-**Nota:** A execução real da simulação via POST não está implementada. O endpoint retorna dados fixos.
-
-```json
-{
-  "inadimplencia_projetada": 3.8,
-  "ioi_score": 6.2,
-  "var_95": 12500000,
-  "var_99": 18200000
-}
-```
+Retorna a última simulação Monte Carlo salva.
 
 ---
 
-## Módulo 5 — ETL e Ingestão
+### `GET /api/v1/graficos/monte-carlo/historico`
+Retorna histórico de simulações salvas.
 
-### `POST /etl/executar`
-
-Gatilho manual para o microserviço Python realizar a coleta de dados da API do Banco Central (SGS). Atualiza as tabelas `fact_serie_temporal`.
+Query params:
+- `limite` (opcional, default=20, min=1, max=100)
 
 ---
 
-## Códigos de Erro
+### `GET /api/v1/graficos/monte-carlo/{id}`
+Retorna o resultado de uma simulação salva pelo ID.
+
+---
+
+## Endpoints de ETL
+
+### `POST /api/v1/etl/executar`
+Dispara a atualização de dados via API do Banco Central (SGS).
+
+---
+
+### `GET /api/v1/etl/stream`
+Executa a atualização via streaming e retorna progresso em `text/event-stream`.
+
+---
+
+### `GET /api/v1/etl/status`
+Retorna a data da última ingestão por categoria e o total de registros.
+
+---
+
+## Endpoints de banco de dados
+
+### `POST /api/v1/database/create`
+Cria ou atualiza o banco de dados SQLite.
+
+---
+
+### `DELETE /api/v1/database/delete`
+Deleta o arquivo SQLite do banco de dados.
+
+---
+
+## Endpoints LLM
+
+### `GET /api/v1/llm/status`
+Retorna o status do serviço LLM/Groq.
+
+---
+
+### `POST /api/v1/llm/chat`
+Envia uma pergunta ao assistente LLM.
+
+Body JSON:
+- `message`: string
+- `history`: lista de objetos com `role` e `content`
+
+---
+
+## Códigos de erro
 
 | Código | Significado                                      |
 |--------|--------------------------------------------------|
