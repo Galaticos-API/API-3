@@ -16,60 +16,46 @@ O sistema deve processar dados para 9 visualizações distintas, integrando sér
 ---
 
 ## Arquitetura de Rotas Backend
-A API expõe **23 rotas** organizadas sob o prefixo `/api/v1`. A autenticação é obrigatória (JWT) para a maioria dos módulos. 
+A API atual é organizada em quatro routers principais sob o prefixo `/api/v1`. Não há autenticação JWT implementada no backend atual: todas as rotas são públicas.
 
-### 1. Autenticação
-| Método | Rota | Descrição |
-| :--- | :--- | :--- |
-| POST | `/login` | Autentica usuário e gera JWT.  |
-| POST | `/logout` | Invalida o token na tabela `sessao`.  |
-| GET | `/me` | Retorna o perfil do usuário logado.  |
-
-### 2. Estados e Regiões
-| Método | Rota | Descrição |
-| :--- | :--- | :--- |
-| GET | `/` | Lista os 27 estados (filtro por região opcional).  |
-| GET | `/:sigla` | Detalhes de um estado específico (ex: SP).  |
-
-### 3. Gráficos Prontos
+### 1. Gráficos Prontos
 *Módulo de conveniência para o front-end (JSON estruturado).* 
 | Método | Rota | Descrição |
 | :--- | :--- | :--- |
-| GET | `/credito-sfn` | Dados para o GRF-01 (Saldo Nacional).  |
-| GET | `/macro-contexto` | Dados para o GRF-02 (Selic/IPCA/Inadimplência).  |
-| GET | `/inadimplencia-regional` | Dados para os GRF-03 e GRF-04 (Regional).  |
-| GET | `/heatmap-estados` | Dados para o GRF-05 (Heatmap 24m).  |
-| GET | `/scatter-pf-pj` | Dados para o GRF-06 (Dispersão PF vs PJ).  |
-| GET | `/estudo-estado/:sigla` | Dados para o GRF-07 (Dashboard estadual).  |
-| GET | `/score-oportunidade` | Dados para o GRF-08 (Ranking IOI).  |
-| GET | `/monte-carlo/:id` (rota do módulo 5, apenas chamar internamente) | Dados para o GRF-09 (Distribuição Monte Carlo).  |
+| GET | `/api/v1/graficos/credito-sfn` | Dados para o GRF-01 (Saldo Nacional).  |
+| GET | `/api/v1/graficos/macro-contexto` | Dados para o GRF-02 (Selic/IPCA/Inadimplência).  |
+| GET | `/api/v1/graficos/inadimplencia-regional` | Dados para os GRF-03 e GRF-04 (Regional).  |
+| GET | `/api/v1/graficos/heatmap-estados` | Dados para o GRF-05 (Heatmap 24m).  |
+| GET | `/api/v1/graficos/scatter-pf-pj` | Dados para o GRF-06 (Dispersão PF vs PJ).  |
+| GET | `/api/v1/graficos/estudo-estado/{sigla}` | Dados para o GRF-07 (Dashboard estadual).  |
+| GET | `/api/v1/graficos/score-oportunidade` | Dados para o GRF-08 (Ranking IOI).  |
+| GET | `/api/v1/graficos/monte-carlo/{id}` | Dados para o GRF-09 (Distribuição Monte Carlo).  |
 
-### 4. Ranking de Oportunidades 
+### 2. Simulação Monte Carlo
 | Método | Rota | Descrição |
 | :--- | :--- | :--- |
-| GET | `/` | Lista o ranking de estados ordenado pelo score IOI.  |
-| GET | `/:sigla` | Detalhamento dos componentes do score de um estado.  |
-| POST | `/recalcular` | Dispara o recálculo do IOI em batch.  |
+| POST | `/api/v1/graficos/monte-carlo` | Executa a simulação com parâmetros customizados.  |
+| GET | `/api/v1/graficos/monte-carlo/historico` | Lista simulações anteriores.  |
+| GET | `/api/v1/graficos/monte-carlo/latest` | Retorna a última simulação salva.  |
 
-### 5. Simulação Monte Carlo
+### 3. ETL e Ingestão de Dados
 | Método | Rota | Descrição |
 | :--- | :--- | :--- |
-| POST | `/monte-carlo` | Executa a simulação com parâmetros customizados.  |
-| GET | `/:id` | Recupera o resultado de uma simulação salva.  |
-| GET | `/historico` | Lista simulações anteriores do usuário logado.  |
+| POST | `/api/v1/etl/executar` | Dispara a atualização completa via API do BCB.  |
+| GET | `/api/v1/etl/stream` | Executa a atualização via streaming e retorna progresso.  |
+| GET | `/api/v1/etl/status` | Mostra a data da última atualização por categoria.  |
 
-### 6. Assistente de IA 
+### 4. Banco de Dados
 | Método | Rota | Descrição |
 | :--- | :--- | :--- |
-| POST | `/consulta` | Envia pergunta e recebe análise baseada nos dados.  |
-| GET | `/historico` | Lista conversas passadas com a IA.  |
-| GET | `/consulta/:id` | Recupera uma interação específica.  |
+| POST | `/api/v1/database/create` | Cria ou atualiza o banco de dados SQLite.  |
+| DELETE | `/api/v1/database/delete` | Remove o arquivo SQLite do banco de dados.  |
 
-### 7. ETL e Ingestão de Dados
+### 5. Assistente de IA 
 | Método | Rota | Descrição |
 | :--- | :--- | :--- |
-| POST | `/executar` | Dispara a atualização completa via API do BCB.  |
-| GET | `/status` | Mostra a data da última atualização por categoria.  |
+| POST | `/api/v1/llm/chat` | Envia pergunta e recebe análise baseada nos dados do dashboard.  |
+| GET | `/api/v1/llm/status` | Retorna o status do serviço LLM/Groq.  |
 
 ---
 
